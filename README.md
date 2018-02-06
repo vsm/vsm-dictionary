@@ -91,7 +91,7 @@ place it on your server, and include an HTML-&lt;head&gt; tag like:
 
 ### Importing
 
-To import just `DictionaryLocal` With Node.js:
+To import just `DictionaryLocal` with Node.js:
 
 ```
 const DictionaryLocal = require('vsm-dictionary').DictionaryLocal;
