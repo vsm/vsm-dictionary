@@ -1,0 +1,12 @@
+bower_components/
+jspm_packages/
+node_modules/
+secret*
+x-*/
+y-*/
+z-*/
+*.bat
+*.lnk
+*.sublime-project
+*.sublime-workspace
+2Do.js

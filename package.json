@@ -1,0 +1,43 @@
+{
+  "name": "vsm-dictionary",
+  "version": "0.1.0",
+  "description": "VSM-dictionary interface, local dictionary implementation, and remote dictionary demo",
+  "main": "dist/vsm-dictionary.js",
+  "module": "_src/main.js",
+  "scripts": {
+    "start": "npm run dev:test",
+    "test": "npm run dev:test",
+    "dev": "webpack-dev-server --config webpack.config.js --env.NODE_ENV=development",
+    "dev:test": "webpack-dev-server --config webpack.config.js --env.NODE_ENV=development --env.ADDTESTS=1",
+    "build": "webpack --config webpack.config.js --env.NODE_ENV=production",
+    "build:test": "webpack --config webpack.config.js --env.NODE_ENV=production --env.ADDTESTS=1"
+  },
+  "keywords": [
+    "VSM",
+    "dictionary",
+    "ontology",
+    "identifier",
+    "term"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vsmjs/vsm-dictionary"
+  },
+  "author": "Steven Vercruysse (http://stcruy.com)",
+  "license": "CC-BY-NC-SA-4.0",
+  "devDependencies": {
+    "@babel/core": "^7.0.0-beta.39",
+    "@babel/preset-env": "^7.0.0-beta.39",
+    "async-waterfall": "^0.1.5",
+    "babel-loader": "^8.0.0-beta.0",
+    "chai": "^4.1.2",
+    "clean-webpack-plugin": "^0.1.18",
+    "copy-webpack-plugin": "^4.3.1",
+    "html-webpack-plugin": "^2.30.1",
+    "text-transform-loader": "^2.0.0",
+    "uglifyjs-webpack-plugin": "^1.1.8",
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.11.1"
+  },
+  "dependencies": {}
+}

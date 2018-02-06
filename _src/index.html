@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta http-equiv="Content-type" content="text/html; charset=UTF-8" />
+  <title>vsm-dictionary test page</title>
+  <link rel="stylesheet" id="google_fonts-css" href="https://fonts.googleapis.com/css?family=Noto+Sans%3A400%2C700%7CDroid+Sans%7CPT+Sans+Narrow&#038;ver=4.7.4" type="text/css" media="all">
+  <style>
+    body { font-family: "Noto Sans", sans-serif;  font-size: 14px;  margin: 0; }
+    a, a:visited { color: #FF0000; }
+    #demo { padding: 8px 0 16px 50px;  background-color: #FFEEDD;  min-height: 190px; }
+  </style>
+  <script type="text/javascript">  // Give also Internet Explorer modern JS-features with this polyfill.
+    if(/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js"><\/script>');
+  </script>
+  <script src="<%= htmlWebpackPlugin.files.js[0] %>"></script>
+</head>
+<body>
+  <div id="demo"></div>
+  <script src="demoInBrowser.js"></script>
+</body>
+</html>
