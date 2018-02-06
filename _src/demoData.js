@@ -2,8 +2,8 @@
 if(typeof gotData !== 'undefined')  gotData(createData());
 
 
-// In Node.js, deliver the data via `module.exports`. But define it `module`
-// first, for browser compatibility.
+// In Node.js, deliver the data via `module.exports`. But define `module` first,
+// for browser compatibility.
 if(typeof module === 'undefined')  { var module = {}; }
 module.exports = createData();
 
