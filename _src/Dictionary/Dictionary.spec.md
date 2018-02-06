@@ -220,11 +220,12 @@ Subclasses must implement the following functions:
         - `d`: {String|Array(String)} (opt.):
             one/more dictIDs; returns only for these, combined in OR-mode;
         + when no `filter.d` is given (default), returns for all sub-dicts;
-    - `sort`: {String}:
+    - `sort`: {Object}:
         - `d`: {String|Array(String)} (opt.):
             sorts matches whose dictID is in this list, first; then sorts as
             usual ('S' before 'T', then case-insensitively by term-string, then
             by own dictID); see notes below for details on sorting;
+            this essentially defines 'preferred dictionaries';
     - `z`: {true|false|String|Array(String)}:
         will return a full, no, or a partial z-object; just like `getEntries()`;
     - `page` {int}:

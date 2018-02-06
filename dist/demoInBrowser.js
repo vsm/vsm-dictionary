@@ -167,23 +167,25 @@ function getNewMatchesRemote(dict, str, optionsFunc, el) {
     // a `Dictionary` subclass, e.g. in a `DictionaryRemotePubDict`.
     for (var i = 0, s = '';  i < res.items.length;  i++) {
       var e = res.items[i];
-      e = {
-        i: e.identifier,
-        d: options.filter.d,
-        s: e.label,
-        w: e.label.startsWith(str) ? 'S' : 'T',
-        /*
-        z: {
-          dictionary_id: e.dictionary_id,
-          id: e.id,
-          label_length: e.label_length,
-          mode: e.mode,
-          norm1: e.norm1,
-          norm2: e.norm2,
-          created_at: e.created_at,
-          updated_at: e.updated_at
-        } //*/
-      };
+      if(!e.w) {  // Don't convert parent-class generated match-objects.
+        e = {
+          i: e.identifier,
+          d: options.filter.d,
+          s: e.label,
+          w: e.label.startsWith(str) ? 'S' : 'T',
+          /*
+          z: {
+            dictionary_id: e.dictionary_id,
+            id: e.id,
+            label_length: e.label_length,
+            mode: e.mode,
+            norm1: e.norm1,
+            norm2: e.norm2,
+            created_at: e.created_at,
+            updated_at: e.updated_at
+          } //*/
+        };
+      }
 
       s += matchToString(e) + '\n';
     }
