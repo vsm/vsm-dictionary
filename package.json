@@ -1,6 +1,6 @@
 {
   "name": "vsm-dictionary",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "VSM-dictionary interface, local dictionary implementation, and remote dictionary demo",
   "main": "dist/vsm-dictionary.js",
   "module": "_src/main.js",

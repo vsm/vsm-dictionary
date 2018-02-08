@@ -124,11 +124,11 @@ function createDemoPanel(opt) {
   de.appendChild(b);
 
   a.addEventListener('input', function (ev) {
-    opt.getMatchesF(opt.dict, this.value, searchOptionsFunc, b);
+    opt.getMatchesF(opt.dict, this.value, searchOptionsFunc(), b);
   });
 
   a.setAttribute('value', opt.initialSearchStr);
-  opt.getMatchesF(opt.dict, a.value, searchOptionsFunc, b);  // Get 1st matches.
+  opt.getMatchesF(opt.dict, a.value, searchOptionsFunc(), b);  // Get 1st matches.
 
   var ans = {a: a, b: b};
   if(d)  ans.d = d;
@@ -143,8 +143,7 @@ function createDemoPanel(opt) {
 
 
 
-function getNewMatchesLocal(dict, str, optionsFunc, el) {
-  var options = optionsFunc();
+function getNewMatchesLocal(dict, str, options, el) {
 
   dict.getMatchesForString(str, options, function (err, res) {
     if (err)  { el.innerHTML = 'Error: ' + err;  return; }
@@ -157,8 +156,7 @@ function getNewMatchesLocal(dict, str, optionsFunc, el) {
 
 
 
-function getNewMatchesRemote(dict, str, optionsFunc, el) {
-  var options = optionsFunc();
+function getNewMatchesRemote(dict, str, options, el) {
 
   dict.getMatchesForString(str, options, function (err, res) {
     if (err)  { el.innerHTML = 'Error: ' + err;  return; }

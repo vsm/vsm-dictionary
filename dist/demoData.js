@@ -87,7 +87,7 @@ function createData() {
         {i:11,  t: {s:'Na+Cl-', y:'u2u5'} },
         {i:1,   t: ['beta-Carotene', 'β-Carotene'] },
         {i:2,   x:'the Human gene ICER', t:'ICER' },
-        {i:3,   x:'the Human gene cdc2', t: {s:'cdc2', y:'i'},
+        {i:3,   x:'the Human gene cdc2', t: [{s:'cdc2', y:'i'}], //, {s: 'cdc'}, {s: 'KRP5'}],
           z: {species: 'Human'} },
         {i:903, x:'the Mouse gene cdc2', t:'cdc2' },
         {i:14,  x:'to activate (= the activation of) a molecule, by some actor',

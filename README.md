@@ -152,6 +152,32 @@ gives the output:
     w: 'T' } ]
 ```
 
+Or, just to show how to add data, like it is specified for a `Dictionary`
+subclass in general (so, instead using of `DictionaryLocal`'s convenient way
+of giving it to the constructor):
+
+```
+const VsmDictionary = require('./dist/vsm-dictionary.js');
+
+var dict = new VsmDictionary.DictionaryLocal();
+var dictInfo = {id: 'DictID_12', name: 'Example subdictionary'};
+var entries = [
+  {i: 'URI:001', d: 'DictID_12', t: ['aaa', 'syn']},
+  {i: 'URI:002', d: 'DictID_12', t: 'aab'},
+  {i: 'URI:003', d: 'DictID_12', t: 'abc', 'x': 'descr'}
+];
+
+dict.addDictInfos(dictInfo, (err) => {
+  dict.addEntries(entries, (err) => {
+    dict.getMatchesForString('ab', {}, function (err, res) {
+      console.dir(res.items, {depth: 4});
+    });
+  });
+});
+```
+
+which gives the same output.
+
 More examples and info are included in the demo files
 [demoInNode.js](_src/demoInNode.js)
 and [demoInBrowser.js](_src/demoInBrowser.js) (see also below).

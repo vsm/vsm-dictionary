@@ -52,11 +52,16 @@ export function callAsync(f, ...args) {
       calls to `tmpCb(error, result)`, into two arrays: `errors` and `results`;
     - and finally, calls `cb` with `(errors, results)`,
       after making `errors` simply `null` if all errors were `null`.
-  + Moreover, makes the call to `cb` in a truly asynchronous way.
+  + Moreover, makes both the calls to `cb` and to `func` itself happen
+    in a truly asynchronous way.
 */
 export function callAsyncForOneOrEach(elems, func, cb) {
-  if (!Array.isArray(elems))  func(elems, makeAsync(cb));
-  else asyncMap(elems, (e, cbf) => func(e, makeAsync(cbf)), makeAsync(cb));
+  if (!Array.isArray(elems))  makeAsync(func)(elems, makeAsync(cb));
+  else asyncMap(
+    elems,
+    (e, cbf) => makeAsync(func)(e, makeAsync(cbf)),
+    makeAsync(cb)
+  );
 
   function makeAsync(cb) {
     return (...args) => callAsync(cb, ...args);

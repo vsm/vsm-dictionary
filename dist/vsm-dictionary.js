@@ -7,4 +7,4 @@ in Node.js, by simply doing:
 `var VsmDictionary = require('./vsm-dictionary');`
 */
 
-module.exports = require('./vsm-dictionary-0.1.0.min.js');
+module.exports = require('./vsm-dictionary-0.1.1.min.js');
