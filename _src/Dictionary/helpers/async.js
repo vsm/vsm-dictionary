@@ -48,20 +48,18 @@ export function callAsync(f, ...args) {
   + If `elems` is a single value, then calls `func(value, cb)` on it.
     If `elems` is an array, then
     - calls `func(item, tmpCb)` for all items,
-    - it collects both all errors and results, which `func` returns via its
+    - it collects both all errors, and the results that `func` returns via its
       calls to `tmpCb(error, result)`, into two arrays: `errors` and `results`;
     - and finally, calls `cb` with `(errors, results)`,
       after making `errors` simply `null` if all errors were `null`.
-  + Moreover, makes both the calls to `cb` and to `func` itself happen
-    in a truly asynchronous way.
+  + Moreover, it makes this happen in a in a guaranteed truly asynchronous way:
+    it calls `func` on the next event-loop, or if `func` is never called (when
+    elems is an empty array), then calls `cb` on the next event-loop instead.
 */
 export function callAsyncForOneOrEach(elems, func, cb) {
   if (!Array.isArray(elems))  makeAsync(func)(elems, makeAsync(cb));
-  else asyncMap(
-    elems,
-    (e, cbf) => makeAsync(func)(e, makeAsync(cbf)),
-    makeAsync(cb)
-  );
+  else if(!elems.length)  makeAsync(cb)(null, []);
+  else  asyncMap(elems, (e, cbf) => makeAsync(func)(e, cbf), cb);
 
   function makeAsync(cb) {
     return (...args) => callAsync(cb, ...args);
