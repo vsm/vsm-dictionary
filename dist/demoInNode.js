@@ -86,17 +86,17 @@ function showOutput(err, res, cb) {
 
 
 function matchToString(m) {
-  var a = [
+  var arr = [
     'w:\'' + m.w,
     'd:\'' + m.d,
     'i:\'' + m.i,
     's:\'' + m.s,
   ];
-  if (m.y)  a.push('y:\'' + m.y);
-  if (m.x)  a.push('x:\'' + m.x);
-  if (m.z)  a.push('z:\'' + JSON.stringify(m.z));
-  if (m.t)  a.push('t:\'' + JSON.stringify(m.t)
+  if (m.y)  arr.push('y:\'' + m.y);
+  if (m.x)  arr.push('x:\'' + m.x);
+  if (m.z)  arr.push('z:\'' + JSON.stringify(m.z));
+  if (m.t)  arr.push('t:\'' + JSON.stringify(m.t)
     .replace(/"s"/g, 's') .replace(/"y"/g, 'y').replace(/"x"/g, 'x'));
 
-  return '{' + a.join('\', ') + '}';
+  return '{' + arr.join('\', ') + '}';
 }

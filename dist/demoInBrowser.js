@@ -58,14 +58,14 @@ function makeDemoLocal(demoData) {
     title: 'VsmDictionary.DictionaryLocal &nbsp;demo:',
     //+'&nbsp;<span style="color:#777">(with no options or fixedTerms)</span>:',
     elemIDStr: 'Local',
-    dict: dict,
+    dictionary: dict,
     dictID: '',
     initialSearchStr: 'cd',
     getMatchesF: getNewMatchesLocal,
   });
 
-  elems.a.focus();
-  elems.a.setSelectionRange(0, elems.a.value.length);
+  elems.input.focus();
+  elems.input.setSelectionRange(0, elems.input.value.length);
 }
 
 
@@ -79,7 +79,7 @@ function makeDemoRemote() {
   var elems = createDemoPanel({
     title: 'VsmDictionary.DictionaryRemoteDemo + \'PubDictionaries.org\':',
     elemIDStr: 'Remote',
-    dict: dict,
+    dictionary: dict,
     dictID: 'GO-BP',
     initialSearchStr: 'cell b',
     getMatchesF: getNewMatchesRemote,
@@ -89,54 +89,53 @@ function makeDemoRemote() {
 
 
 function createDemoPanel(opt) {
-  var de = document.getElementById('demo');
-  if (!de)  return;
+  var parent = document.getElementById('demo');
+  if (!parent)  return;
 
-  var t = document.createElement('div');
-  var a = document.createElement('input');
-  var d = opt.dictID ? document.createElement('input') : false;
-  var b = document.createElement('pre');
+  var title = document.createElement('div');
+  var input = document.createElement('input');
+  var dictInput = opt.dictID ? document.createElement('input') : false;
+  var output = document.createElement('pre');
 
-  t.innerHTML = '&bull; ' + opt.title + '<br>';
-  t.setAttribute('style', 'margin: 18px 0 2px -8px; font-size: 12px;');
-  a.setAttribute('id', 'str' + opt.elemIDStr);
-  b.setAttribute('style',
+  title.innerHTML = '&bull; ' + opt.title + '<br>';
+  title.setAttribute('style', 'margin: 18px 0 2px -8px; font-size: 12px;');
+  input.setAttribute('id', 'str' + opt.elemIDStr);
+  output.setAttribute('style',
     'background-color: #fafafa;  border: 1px solid #ddd; '+
     'color: #333;  font-size: 12px;  font-family: Inconsolata, monospace;' +
     'width: 90%;  min-height: 24px;  margin: 2px 0 0 0;  padding: 0 0 1px 0;' +
     'white-space: pre-wrap;'
   );
 
-  if(d) {  // Only add extra dictID-inputfield, if a dictID is given.
-    d.setAttribute('style', 'margin: 0 0 0 10px; width: 60px');
-    d.setAttribute('placeholder', 'dictID');
-    d.setAttribute('id', 'dictID' + opt.elemIDStr);  // E.g. 'dictIDRemote'.
-    d.value = opt.dictID;
-    d.addEventListener('input', function (ev) {  // On dictID change, reset.
-      a.value = '';
-      b.innerHTML = '';
+  if(dictInput) {  // Only add a dictID-inputfield, if a dictID is given.
+    dictInput.setAttribute('style', 'margin: 0 0 0 10px; width: 60px');
+    dictInput.setAttribute('placeholder', 'dictID');
+    dictInput.value = opt.dictID;
+    dictInput.addEventListener('input', function (ev) {  // On change, reset.
+      input.value = '';
+      output.innerHTML = '';
     });
   }
 
-  de.appendChild(t);
-  de.appendChild(a);
-  if(d)  de.appendChild(d);
-  de.appendChild(b);
+  parent.appendChild(title);
+  parent.appendChild(input);
+  if(dictInput)  parent.appendChild(dictInput);
+  parent.appendChild(output);
 
-  a.addEventListener('input', function (ev) {
-    opt.getMatchesF(opt.dict, this.value, searchOptionsFunc(), b);
+  input.addEventListener('input', function (ev) {
+    opt.getMatchesF(opt.dictionary, this.value, searchOptionsFunc(), output);
   });
 
-  a.setAttribute('value', opt.initialSearchStr);
-  opt.getMatchesF(opt.dict, a.value, searchOptionsFunc(), b);  // Get 1st matches.
+  input.setAttribute('value', opt.initialSearchStr);
+  opt.getMatchesF(opt.dictionary, input.value, searchOptionsFunc(), output);
 
-  var ans = {a: a, b: b};
-  if(d)  ans.d = d;
+  var ans = {input: input};
+  if(dictInput)  ans.dictInput = dictInput;
   return ans;
 
   function searchOptionsFunc() {
     var ans = { perPage: matchesMaxCount };
-    if(d)  ans.filter = { d: d.value };  // Always use latest filled-in dictID.
+    if(dictInput)  ans.filter = { d: dictInput.value };  // Use latest value.
     return ans;
   }
 }
@@ -199,18 +198,18 @@ function getNewMatchesRemote(dict, str, options, el) {
 
 function matchToString(m) {
   var n = '</span>';
-  var a = [
+  var arr = [
     'w:\'' + m.w,
     'd:\'' + m.d,
     'i:\'<span style="font-weight:800; color:#737373">' + m.i + n,
     's:\'<span style="font-weight:800; color:#a00">' + m.s + n,
   ];
-  if (m.y)  a.push('y:\'<span style="color:#66e">' + m.y + n);
-  if (m.x)  a.push('x:\'<span style="color:#772">' +
+  if (m.y)  arr.push('y:\'<span style="color:#66e">' + m.y + n);
+  if (m.x)  arr.push('x:\'<span style="color:#772">' +
     m.x + n);
-  if (m.z)  a.push('z:\'<span style="color:#db8">' + JSON.stringify(m.z) + n);
-  if (m.t)  a.push('t:\'<span style="color:#bbb">' + JSON.stringify(m.t)
+  if (m.z)  arr.push('z:\'<span style="color:#db8">' + JSON.stringify(m.z) + n);
+  if (m.t)  arr.push('t:\'<span style="color:#bbb">' + JSON.stringify(m.t)
     .replace(/"s"/g, 's') .replace(/"y"/g, 'y').replace(/"x"/g, 'x') + n);
 
-  return '{' + a.join('\', ') + '\'}';
+  return '{' + arr.join('\', ') + '\'}';
 }
