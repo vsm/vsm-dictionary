@@ -25,6 +25,10 @@ else runDemo();
 
 
 // ---------- DEMO ----------
+var showDemoLogOutput = true;
+var matchesMaxCount = 20;
+
+
 function runDemo() {
   // Load the data via a JSONP script, which will call `gotData()`.
   var script = document.createElement('script');
@@ -32,9 +36,6 @@ function runDemo() {
   document.getElementsByTagName('head')[0].appendChild(script);
 }
 
-
-
-var matchesMaxCount = 20;
 
 function gotData(demoData) {
   makeDemoLocal(demoData);
@@ -47,12 +48,14 @@ function gotData(demoData) {
 function makeDemoLocal(demoData) {
   var dict = new VsmDictionary.DictionaryLocal(demoData);
 
-  console.log('--- VsmDictionary.DictionaryLocal entries sample:');
-  dict.getEntries({ filter: { d: 'BIO' } },  function(err, res) {
-    console.dir(res.items.slice(0, 5), {depth: 4});
-    console.log(dict.entries.length + ' entries.');
-    window.scrollTo(0, document.body.scrollHeight);
-  });
+  if(showDemoLogOutput) {
+    console.log('--- VsmDictionary.DictionaryLocal entries sample:');
+    dict.getEntries({ filter: { d: 'BIO' } },  function(err, res) {
+      console.dir(res.items.slice(0, 5), {depth: 4});
+      console.log(dict.entries.length + ' entries.');
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+  }
 
   var elems = createDemoPanel({
     title: 'VsmDictionary.DictionaryLocal &nbsp;demo:',
