@@ -2,9 +2,9 @@
 Design specification: see Dictionary.spec.md.
 */
 
+import toExponential from 'to-exponential';
 import {callAsync} from './helpers/async';
 import {zPropPrune} from './helpers/arrayQuery';
-import numberStringToExponential from './helpers/numToExp';
 import {undef, deepClone, strcmp, asArray} from './helpers/util';
 
 const todoStr = 'to implement by a subclass';
@@ -152,7 +152,7 @@ export default class Dictionary {
   _getNumberMatchForString(str) {
     if (!this.numberMatchConfig || !str)  return false;
 
-    var id = numberStringToExponential(str);
+    var id = toExponential(str);
     if (id === false)  return false;
 
     return {

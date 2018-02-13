@@ -21,10 +21,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/vsmjs/vsm-dictionary"
+    "url": "git+https://github.com/vsmjs/vsm-dictionary"
   },
   "author": "Steven Vercruysse (http://stcruy.com)",
   "license": "CC-BY-NC-SA-4.0",
+  "bugs": {
+    "url": "https://github.com/vsmjs/vsm-dictionary/issues"
+  },
+  "homepage": "https://github.com/vsmjs/vsm-dictionary#readme",
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.39",
     "@babel/preset-env": "^7.0.0-beta.39",
@@ -39,5 +43,7 @@
     "webpack": "^3.10.0",
     "webpack-dev-server": "^2.11.1"
   },
-  "dependencies": {}
+  "dependencies": {
+    "to-exponential": "^1.0.0"
+  }
 }
