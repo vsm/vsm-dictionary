@@ -30,20 +30,20 @@
   },
   "homepage": "https://github.com/vsmjs/vsm-dictionary#readme",
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.39",
-    "@babel/preset-env": "^7.0.0-beta.39",
+    "@babel/core": "^7.0.0-beta.40",
+    "@babel/preset-env": "^7.0.0-beta.40",
     "async-waterfall": "^0.1.5",
     "babel-loader": "^8.0.0-beta.0",
     "chai": "^4.1.2",
     "clean-webpack-plugin": "^0.1.18",
-    "copy-webpack-plugin": "^4.3.1",
+    "copy-webpack-plugin": "^4.4.1",
     "html-webpack-plugin": "^2.30.1",
     "text-transform-loader": "^2.0.0",
     "uglifyjs-webpack-plugin": "^1.1.8",
-    "webpack": "^3.10.0",
+    "webpack": "^3.11.0",
     "webpack-dev-server": "^2.11.1"
   },
   "dependencies": {
-    "to-exponential": "^1.0.0"
+    "to-exponential": "^1.0.1"
   }
 }

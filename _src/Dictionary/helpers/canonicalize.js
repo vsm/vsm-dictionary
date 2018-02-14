@@ -1,4 +1,7 @@
-import {deepClone, undef} from './util';
+module.exports = {canonicalizeEntry, canonicalizeTerms};
+
+
+const {deepClone, undef} = require('./util');
 
 
 /*
@@ -8,7 +11,7 @@ Converts a given entry so that it returns:
 - that got its `t` converted to a standardized array.
 Also adds the object's keys in i-d-x-tz order, for keeping nice console-output.
 */
-export function canonicalizeEntry(entry) {
+function canonicalizeEntry(entry) {
   var e = {i: entry.i,  d: entry.d};    // Required properties.
   if (!undef(entry.x))  e.x = entry.x;  // Optional String prop.
   e.t = canonicalizeTerms(entry.t);     // Required array prop.
@@ -25,7 +28,7 @@ Converts a possibly simplified form of an entry's terms-list, i.e.
 Also de-duplicates the terms-list.  If a duplicate term occurs further
 in the array, that one is moved into original term's place in the array.
 */
-export function canonicalizeTerms(t) {
+function canonicalizeTerms(t) {
   var tType = typeof t;
   var arr = (
     (tType == 'string') ?  [ {s: t} ] :  // Wrap string in object in array.

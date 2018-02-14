@@ -5,8 +5,8 @@
 ### Intro
 
 [VSM-sentences](http://scicura.org/vsm/vsm.html)
-are built from terms that are linked to semantic identifiers,
-which can be provided by several 'dictionary' webservices.
+are built from terms that are linked to semantic identifiers;
+and these can be provided by several 'dictionary' webservices.
 
 VsmDictionary is a module that provides a standard interface for
 communicating with a term-providing service, and for translating data

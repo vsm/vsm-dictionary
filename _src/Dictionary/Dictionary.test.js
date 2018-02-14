@@ -1,5 +1,5 @@
-import Dictionary from './Dictionary';
-import asyncWaterfall from 'async-waterfall';
+const Dictionary = require('./Dictionary');
+const asyncWaterfall = require('async-waterfall');
 
 
 export default function test(CB, expect, T,L,D) {

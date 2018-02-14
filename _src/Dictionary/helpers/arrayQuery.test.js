@@ -1,4 +1,4 @@
-import {prepGetOptions, arrayQuery, zPropPrune} from './arrayQuery';
+const {prepGetOptions, arrayQuery, zPropPrune} = require('./arrayQuery');
 
 
 export default function test(cb, expect, T,L,D) {

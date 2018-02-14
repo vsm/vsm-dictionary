@@ -11,11 +11,11 @@ It assumes that that server returns a JSON-array with requested data, which
 does not need to be processed further any more.
 */
 
-import Dictionary from './Dictionary';
-import {prepGetOptions} from './helpers/arrayQuery';
+const Dictionary = require('./Dictionary');
+const {prepGetOptions} = require('./helpers/arrayQuery');
 
 
-export default class DictionaryRemoteDemo extends Dictionary {
+module.exports = class DictionaryRemoteDemo extends Dictionary {
 
   constructor(options) {
     var opt = options || {};

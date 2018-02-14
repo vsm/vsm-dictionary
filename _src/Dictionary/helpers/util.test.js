@@ -1,4 +1,4 @@
-import {undef, deepClone, strcmp, asArray, limitBetween} from './util';
+const {undef, deepClone, strcmp, asArray, limitBetween} = require('./util');
 
 
 export default function test(cb, expect, T,L,D) {

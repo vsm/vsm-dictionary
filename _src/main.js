@@ -1,12 +1,12 @@
 // Expose functionality.
-import Dictionary from './Dictionary/Dictionary.js';
-import DictionaryLocal from './Dictionary/DictionaryLocal.js';
-import DictionaryRemoteDemo from './Dictionary/DictionaryRemoteDemo.js';
-export { Dictionary, DictionaryLocal, DictionaryRemoteDemo};
+const Dictionary = require('./Dictionary/Dictionary');
+const DictionaryLocal = require('./Dictionary/DictionaryLocal');
+const DictionaryRemoteDemo = require('./Dictionary/DictionaryRemoteDemo');
+
+module.exports = { Dictionary, DictionaryLocal, DictionaryRemoteDemo};
 
 
 
 /*--[IF_ADDTESTS]--
-import test from './testRunner';
-export { test };
+module.export.test = require('./testRunner');
 /**/

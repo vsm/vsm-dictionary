@@ -1,5 +1,5 @@
-import {canonicalizeTerms, canonicalizeEntry} from './canonicalize';
-import {deepClone} from './util';
+const {canonicalizeEntry, canonicalizeTerms} = require('./canonicalize');
+const {deepClone} = require('./util');
 
 
 export default function test(cb, expect, T,L,D) {

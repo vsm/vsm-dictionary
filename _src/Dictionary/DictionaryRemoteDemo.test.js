@@ -1,6 +1,6 @@
-import DictionaryRemoteDemo from './DictionaryRemoteDemo';
-import asyncWaterfall from 'async-waterfall';
-import {callAsync} from './helpers/async';
+const DictionaryRemoteDemo = require('./DictionaryRemoteDemo');
+const asyncWaterfall = require('async-waterfall');
+const {callAsync} = require('./helpers/async');
 
 
 export default function test(CB, expect, T,L,D) {

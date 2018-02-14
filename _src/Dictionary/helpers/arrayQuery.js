@@ -5,7 +5,10 @@ Contains shared functionality for DictionaryLocal's get-functions:
 - editing of the result array's items's `z`-object properties.
 */
 
-import {undef, asArray, limitBetween} from './util';
+module.exports = {prepGetOptions, arrayQuery, zPropPrune};
+
+
+const {undef, asArray, limitBetween} = require('./util');
 
 const perPageDefault = 20;
 const perPageMax = 100;

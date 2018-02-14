@@ -1,3 +1,6 @@
+module.exports = {asyncMap, callAsync, callAsyncForOneOrEach};
+
+
 /*
 The function `asyncMap(elems, func, cb)` executes, in parallel, a call
 to `func(item, callback(error, result))` for every item of the `elems` array,
@@ -15,7 +18,7 @@ an array of null/error for each of the calls, or simply `null` if no errors.
   - if all of them were `null`, then `errors` is conveniently `null` (no array).
 
 */
-export function asyncMap(elems, func, cb) {
+function asyncMap(elems, func, cb) {
   var results = [];
   var errors = [];
   var count = elems.length;
@@ -39,7 +42,7 @@ export function asyncMap(elems, func, cb) {
   Makes a call to `f` with given arguments, in a truly asynchronous way,
   i.e. on new event loop.
 */
-export function callAsync(f, ...args) {
+function callAsync(f, ...args) {
   setTimeout(() => f(...args), 0);
 }
 
@@ -56,7 +59,7 @@ export function callAsync(f, ...args) {
     it calls `func` on the next event-loop, or if `func` is never called (when
     elems is an empty array), then calls `cb` on the next event-loop instead.
 */
-export function callAsyncForOneOrEach(elems, func, cb) {
+function callAsyncForOneOrEach(elems, func, cb) {
   if (!Array.isArray(elems))  makeAsync(func)(elems, makeAsync(cb));
   else if(!elems.length)  makeAsync(cb)(null, []);
   else  asyncMap(elems, (e, cbf) => makeAsync(func)(e, cbf), cb);

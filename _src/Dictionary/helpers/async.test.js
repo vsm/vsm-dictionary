@@ -1,5 +1,5 @@
-import {asyncMap, callAsync, callAsyncForOneOrEach} from './async';
-import asyncWaterfall from 'async-waterfall';
+const {asyncMap, callAsync, callAsyncForOneOrEach} = require('./async');
+const asyncWaterfall = require('async-waterfall');
 
 
 export default function test(CB, expect, T,L,D) {

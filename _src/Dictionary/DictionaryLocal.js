@@ -1,12 +1,12 @@
 /*
 Design specification: see DictionaryLocal.spec.md.
 */
-
-import Dictionary from './Dictionary';
-import {callAsync, callAsyncForOneOrEach as callAsyncOE} from './helpers/async';
-import {canonicalizeTerms, canonicalizeEntry} from './helpers/canonicalize';
-import {prepGetOptions, arrayQuery, zPropPrune} from './helpers/arrayQuery';
-import {deepClone, strcmp, asArray} from './helpers/util';
+const Dictionary = require('./Dictionary');
+const callAsync   = require('./helpers/async').callAsync;
+const callAsyncOE = require('./helpers/async').callAsyncForOneOrEach;
+const {canonicalizeTerms, canonicalizeEntry} = require('./helpers/canonicalize');
+const {prepGetOptions, arrayQuery, zPropPrune} = require('./helpers/arrayQuery');
+const {deepClone, strcmp, asArray} = require('./helpers/util');
 
 
 const msgAbsentDictInfo = s => `dictInfo for '${s}' does not exist`;
@@ -16,7 +16,7 @@ const msgNoSuchDictID   = s => `entry is linked to non-existent dictID '${s}'`;
 const f_id_numLength = 4;
 
 
-export default class DictionaryLocal extends Dictionary {
+module.exports = class DictionaryLocal extends Dictionary {
 
   constructor(options) {
     var opt = options || {};

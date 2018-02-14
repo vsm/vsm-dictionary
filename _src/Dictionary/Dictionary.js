@@ -1,16 +1,15 @@
 /*
 Design specification: see Dictionary.spec.md.
 */
-
-import toExponential from 'to-exponential';
-import {callAsync} from './helpers/async';
-import {zPropPrune} from './helpers/arrayQuery';
-import {undef, deepClone, strcmp, asArray} from './helpers/util';
+const toExponential = require('to-exponential');
+const {callAsync} = require('./helpers/async');
+const {zPropPrune} = require('./helpers/arrayQuery');
+const {undef, deepClone, strcmp, asArray} = require('./helpers/util');
 
 const todoStr = 'to implement by a subclass';
 
 
-export default class Dictionary {
+module.exports = class Dictionary {
 
   constructor(options) {
     var opt = options || {};

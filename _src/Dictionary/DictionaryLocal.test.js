@@ -1,6 +1,6 @@
-import DictionaryLocal from './DictionaryLocal';
-import {deepClone} from './helpers/util';
-import asyncWaterfall from 'async-waterfall';
+const DictionaryLocal = require('./DictionaryLocal');
+const {deepClone} = require('./helpers/util');
+const asyncWaterfall = require('async-waterfall');
 
 
 var dict;
