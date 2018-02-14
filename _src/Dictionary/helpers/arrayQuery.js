@@ -17,7 +17,7 @@ const perPageMax = 100;
 // Makes `options` and `options.filter` not-undefined,
 // and makes each `options.filter.<filterKey>` an Array or `false`,
 // and the same for `options.sort.<sortKey>` if given (only for match-search).
-export function prepGetOptions(options, filterKeys = [], sortKeys) {
+function prepGetOptions(options, filterKeys = [], sortKeys) {
   var o    = Object.assign({}, options  || {});  // Clone as well, ..
   o.filter = Object.assign({}, o.filter || {});  // .. to avoid side-effects.
   filterKeys.forEach(k => o.filter[k] = asArrayOrFalse(o.filter[k]));
@@ -34,7 +34,7 @@ export function prepGetOptions(options, filterKeys = [], sortKeys) {
 }
 
 
-export function arrayQuery(array, filter, sort, page, perPage) {
+function arrayQuery(array, filter, sort, page, perPage) {
   page    = limitBetween(page   || 1             , 1, null);
   perPage = limitBetween(perPage|| perPageDefault, 1, perPageMax);
   var skip = (page - 1) * perPage;
@@ -47,7 +47,7 @@ export function arrayQuery(array, filter, sort, page, perPage) {
 
 // For each `array`-item's `z`-property, keeps only the subproperties
 // specified in list `zs`. Or keeps/deletes all if `zs` is true/false resp.
-export function zPropPrune(array, zs = true) {
+function zPropPrune(array, zs = true) {
   if (zs !== true) {
     zs = zs === false ? [] : asArray(zs);
     array = array.map(e => {
