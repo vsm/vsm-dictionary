@@ -19,7 +19,7 @@ function strcmp(a, b, caseMatters = false) {
     a = a.toLowerCase();
     b = b.toLowerCase();
   }
-  return a > b ?  1 :  a < b ?  -1 :  0;
+  return a < b ?  -1 :  a > b ?  1 :  0;
 }
 
 
