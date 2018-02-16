@@ -167,7 +167,8 @@ module.exports = class DictionaryLocal extends Dictionary {
   // --- ADD/UPDATE/DELETE SINGLE ENTRY ---
 
   _addEntry(entry, cb) {
-    if (!entry.i || !entry.d || !entry.t) {
+    if (!entry.i || !entry.d || !entry.t ||
+        (Array.isArray(entry.t) && !entry.t.length)) {  // No empty array `t`.
       return cb('entry misses a required property: i, d, or t');
     }
 

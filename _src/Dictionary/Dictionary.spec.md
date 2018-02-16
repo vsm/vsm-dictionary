@@ -65,16 +65,16 @@ A `Dictionary` provides access to a (local or remote) list of
     - `x`: {String} (optional):
               an eXplanation/description/definition of the concept;
     - `t`: {Array(Object)}:
-              a list of the concept's terms, i.e. its synonyms's string-
-              representations, each represented by an Object with properties:
+              a non-empty list of the concept's terms, i.e. its synonyms's
+              string-representations, each represented by an Object with props:
         - `s`: {String}:
               the term as a pure string, making it findable via string-search;
         - `y`: {String|Object} (optional):
               style-information; this could be a html-repres. of `s`, e.g. with
               sub/superscript, or an object or code with styling-instructions;
         - `x`: {String} (optional):
-              this `x` would override the entry's `x`, if present, enabling us
-              to give a custom descr. to a concept, from a term's perspective;
+              if present, this `x` overrides the entry's `x`, enabling us to
+              give a custom descr. of a concept, from one term's perspective;
     - `z`: {Object} (optional):
             any extra information, free in form, related to the entry; this
             could include subdictionary-specific data for `f_aci()` processing.

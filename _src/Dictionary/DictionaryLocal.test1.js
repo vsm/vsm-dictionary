@@ -40,7 +40,8 @@ var e4 = {i:'B:02', d:'B', t: [ {s:'Na+Cl-', y:'u2u5'} ] };
 var e5p = {i:''    , d:'A', t: 'in' };
 var e6p = {i:'A:06', d:'' , t: 'in' };
 var e7p = {i:'A:07', d:'A', t: ''   };
-var e7p2= {i:'A:07', d:'A', t: [''] };
+var e7p2= {i:'A:07', d:'A', t: []   };
+var e7p3= {i:'A:07', d:'A', t: [''] };
 var e8 = {i:'X:01', d:'X', t: 'in' };
 var e9i  = {i:999,      d:'B', t: [ {s:'in'} ] };
 var e9   = {i:'B:0999', d:'B', t: [ {s:'in'} ] };
@@ -305,8 +306,9 @@ function testAddUpdateDeleteEntries(CB, expect, T,L,D) {
       T('addEntries(): multiple adds, with errors for duplicate; and ' +
         'for missing `i`, `d`, or `t`; and for invalid term; ' +
         'and for nonexistent linked dictID');
-      dict.addEntries([e1, e4, e5p, e6p, e7p, e7p2, e8], err => {
-        err.should.deep.equal([e1Err, null, epErr, epErr, epErr, etErr, e8Err]);
+      dict.addEntries([e1, e4, e5p, e6p, e7p, e7p2, e7p3, e8], err => {
+        err.should.deep.equal(
+          [e1Err, null, epErr, epErr, epErr, epErr, etErr, e8Err]);
         dict.entries.should.deep.equal([e1, e2, e3, e4]);
         cnt.should.equal(4);
         cb();
