@@ -47,6 +47,7 @@ function arrayQuery(array, filter, sort, page, perPage) {
 
 // For each `array`-item's `z`-property, keeps only the subproperties
 // specified in list `zs`. Or keeps/deletes all if `zs` is true/false resp.
+// If the `z`-property would be `{}`, then removes it completely.
 function zPropPrune(array, zs = true) {
   if (zs !== true) {
     zs = zs === false ? [] : asArray(zs);

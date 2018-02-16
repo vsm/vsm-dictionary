@@ -19,7 +19,6 @@ const src  = path.resolve(__dirname, './' + srcFoldN);
 const dist = path.resolve(__dirname, './dist');
 const ifAddTestsRegex = /\/\*\-\-\[IF_ADDTESTS\]\-\-/g;
 const sourceMapInProd    = false;
-const addVersionNrInProd = true;
 
 
 module.exports = (env = {}) => {
@@ -29,9 +28,6 @@ module.exports = (env = {}) => {
   var ADDTESTS = !!env.ADDTESTS;  // So, if not set, excludes tests by default.
 
   const UglifyJSPlugin = !PROD ? 0 : require('uglifyjs-webpack-plugin');
-
-  const versionNr = !PROD || !addVersionNrInProd ? '' :
-    JSON.stringify(require('./package.json').version) .replace(/\"/g,'');
 
 
   return Object.assign(
@@ -47,7 +43,7 @@ module.exports = (env = {}) => {
 
 
     {
-      entry: src + '/main.js',
+      entry: src + '/vsm-dictionary.js',
 
 
       devtool: !PROD ? 'inline-source-map' :
@@ -60,13 +56,19 @@ module.exports = (env = {}) => {
             test: /\.js$/,
             include: src,
             exclude: /(node_modules|bower_components|demo.*\.js)/,
-            use: {
-              loader: 'babel-loader',
-              options: { presets: ['@babel/preset-env'] }
-            }
+            use: [{
+                loader: 'babel-loader',
+                options: { presets: ['@babel/preset-env'] }
+              }, {
+                loader: 'text-transform-loader',
+                options: {
+                  transformText: s =>
+                    s.replace(/require\('xmlhttprequest'\)/g, '{}')
+                }
+              }]
           },
           {
-            test: /main\.js$/,
+            test: /vsm-dictionary\.js$/,
             include: src,
             exclude: /(node_modules|bower_components)/,
             use: {
@@ -80,7 +82,10 @@ module.exports = (env = {}) => {
       },
 
 
-      node: { fs: 'empty' },
+      node: {
+        fs: 'empty',
+        child_process: 'empty'  // Extra safety against xmlhttprequest-error.
+      },
 
 
       plugins: [  // -- DEV+PROD COMMON PLUGINS --
@@ -96,11 +101,6 @@ module.exports = (env = {}) => {
           { from: src + '/demoData.js' },
           { from: src + '/demoInBrowser.js' },
           { from: src + '/demoInNode.js' },
-          { from: src + '/vsm-dictionary.js',
-            transform: buf => {
-              return buf.toString().replace(/<VERSIONNR>/g, versionNr);
-            }
-          },
         ])
       ] .concat( !PROD ?
 
@@ -117,9 +117,7 @@ module.exports = (env = {}) => {
 
       output: {
         path: dist,
-        filename: 'vsm-dictionary' +
-          (!PROD ? '' : ( !addVersionNrInProd ? '' : '-' + versionNr) + '.min')
-          + '.js' ,
+        filename: 'vsm-dictionary.js' ,
         library: {
           root: 'VsmDictionary',  // Expose as global variable for browsers.
           amd: 'vsm-dictionary',

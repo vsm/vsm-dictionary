@@ -182,7 +182,7 @@ Subclasses must implement the following functions:
     - `z`: {true|false|String|Array(String)}:
         instructs to return a z-object with all, none (no `z`-prop then), or
         the given selection of the entries' z-properties, respectively;
-        a subclass may define its own default value for when not given;
+        a subclass may define its own default value for when no `z` given;
     - `page` {int}:
         which page of the paginated result is requested (starting from 1);
     - `perPage` {int}:

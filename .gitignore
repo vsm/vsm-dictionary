@@ -10,3 +10,4 @@ z-*/
 *.sublime-project
 *.sublime-workspace
 2Do.js
+dist/

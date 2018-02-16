@@ -120,8 +120,28 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
   }
 
 
-  _getReqObj() {  // This makes the requests spy-upon'able and testable.
-    return new XMLHttpRequest();
+  _getReqObj() {
+    /*
+    1. In the browser, we have to use a 'XMLHttpRequest' object for requests.
+       But in Node.js (our development and testing environment), this object
+       is not available. Therefore in Node, we wrap Node's http.get() into a
+       similar object, which is what the npm package `xmlhttprequest` does.
+    2. When bundling this DictionaryRemoteDemo for the browser, with webpack,
+       `webpack.config` should include `node: {child_process: 'empty'}`.
+       Or better (or, in addition):
+       it should string-replace "require('xmlhttprequest')" by "{}", so that
+       the `xmlhttprequest` package does not get bundled at all!
+       + This XMLHttpRequest-switching setup must also be used by other, future
+         `vsm-dictionary-remote-...`s, **SO THAT THEY WORK IN THE BROWSER TOO**;
+         and the package-eliminating setup should be used when webpack'ing
+         future, browser-based modules that include a `vsm-dictionary-remote..`.
+    3. By placing this in a separate function, we also make this request-
+       object replacable and spy-upon'able, for testing.
+    */
+    return new (typeof XMLHttpRequest !== 'undefined' ?
+      XMLHttpRequest :  // In browser.
+      require('xmlhttprequest').XMLHttpRequest  // In Node.js.
+    )();
   }
 
 

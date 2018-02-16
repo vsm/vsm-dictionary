@@ -2,11 +2,13 @@
 Design specification: see Dictionary.spec.md.
 */
 const toExponential = require('to-exponential');
-const {callAsync} = require('./helpers/async');
 const {zPropPrune} = require('./helpers/arrayQuery');
 const {undef, deepClone, strcmp, asArray} = require('./helpers/util');
 
+const callAsync = (f, ...args) => setTimeout(() => f(...args), 0);
+
 const todoStr = 'to implement by a subclass';
+
 
 
 module.exports = class Dictionary {
@@ -25,10 +27,12 @@ module.exports = class Dictionary {
 
   // Fetches match-objects for fixedTerms, i.e for a conceptID + optional term,
   // and stores them in `this.fixedTermsCache`, accessible via a lookup key.
+  // Always calls `cb` on the next event-loop, as long as getEntries() does too.
   loadFixedTerms(idts, options, cb) {
     idts = this._prepIdts(idts);
 
     // Prevent unfiltered query; (`opt.filter.i=[]` would request all entries).
+    // Also. call back on next event-loop, as `getEntries()` can't do that now.
     if (!idts.length)  return callAsync(cb, null);
 
     var opt = options ? deepClone(options) : {};
@@ -38,7 +42,7 @@ module.exports = class Dictionary {
     opt.perPage  = idts.length;  // Ensure the response isn't paginated.
 
     this.getEntries(opt, (err, res) => {
-      if (err)  return callAsync(cb, err);
+      if (err)  return cb(err);
 
       // For each given id(+str), find the matching entry in the returned `res`.
       idts.forEach(x => {
@@ -52,7 +56,7 @@ module.exports = class Dictionary {
         this.fixedTermsCache[k] = this._entryToMatch(e, p, 'F');
       });
 
-      callAsync(cb, null);
+      cb(null);
     });
   }
 
@@ -81,12 +85,13 @@ module.exports = class Dictionary {
   // merges them into an array of normal matches, coming from a subclass's
   // `getMatchesForString()` (which calls this function).
   // Only has an effect for result-page 1.
+  // Always calls `cb` on the next event-loop.
   addExtraMatchesForString(str, arr, opt, cb) {
     // If the requested page > 1, add no matches.
     if (opt && (opt.page || 1) > 1)  return callAsync(cb, null, arr);
     arr = arr.slice(0);  // Duplicate before editing.
 
-    var res = this._getFTMatchesForString(str, opt);
+    var res = this._getFixedMatchesForString(str, opt);
 
     if (res.length) {
       // Merge after one possible 'R'-type match, and before all others.
@@ -117,7 +122,7 @@ module.exports = class Dictionary {
   // Searches `str` in `options.idts`'s linked fixedTerms's strings,
   // and (synchronously) returns newly constructed match-objects,
   // sorted and (extra) z-pruned.
-  _getFTMatchesForString(str, opt) {
+  _getFixedMatchesForString(str, opt) {
     // If no FT-lookup is requested, return no matches.
     if (!opt || !opt.idts)  return [];
 

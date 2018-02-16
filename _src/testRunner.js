@@ -68,7 +68,7 @@ chai.should();
 
 
 // 0.) Import all *.test.js modules, recursively through subfolders.
-var rc = require.context('./', true, /\.test\.js$/);
+var rc = require.context('./', true, /\.test1\.js$/);
 var tests;
 var win;
 var testAll;
@@ -78,7 +78,7 @@ var logTestNames;
 
 
 
-export default function test(opt, done) {
+module.exports = function test(opt, done) {
   var def = x => opt && typeof opt[x] !== 'undefined';
 
   // Options.
@@ -160,7 +160,7 @@ function prepareTests() {
       return a > b ?  1 :  a < b ?  -1 :  0;
     })
     .map(key => {
-      var name = key.replace(/^\.\/(.+)\.test\.js$/, '$1');
+      var name = key.replace(/^\.\/(.+)\.test1\.js$/, '$1');
       return { name,  f: rc(key).default };
     });
     /// D(rc); D(tests);

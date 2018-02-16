@@ -1,10 +1,12 @@
-/*
-While Webpack generates a bundle with a versioned filename, which is what
-browsers like, (and is at `vsm-dictionary-{latest-version-number}.min.js`),
+// Expose functionality.
+const Dictionary = require('./Dictionary/Dictionary');
+const DictionaryLocal = require('./Dictionary/DictionaryLocal');
+const DictionaryRemoteDemo = require('./Dictionary/DictionaryRemoteDemo');
 
-this file enables us to include the package without inserting that number
-in Node.js, by simply doing:
-`var VsmDictionary = require('./vsm-dictionary');`
-*/
+module.exports = { Dictionary, DictionaryLocal, DictionaryRemoteDemo };
 
-module.exports = require('./vsm-dictionary-<VERSIONNR>.min.js');
+
+
+/*--[IF_ADDTESTS]--
+module.exports.test = require('./testRunner');
+/**/

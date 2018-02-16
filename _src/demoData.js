@@ -1,4 +1,4 @@
-// In the browser, deliver the data via a JSONP-call.
+// In the browser, deliver the data via a JSONP-type call.
 if(typeof gotData !== 'undefined')  gotData(createData());
 
 

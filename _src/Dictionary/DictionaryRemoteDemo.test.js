@@ -1,38 +1,37 @@
 const DictionaryRemoteDemo = require('./DictionaryRemoteDemo');
-const asyncWaterfall = require('async-waterfall');
 const {callAsync} = require('./helpers/async');
+const chai = require('chai');  chai.should();
+const expect = chai.expect;
+
+var testLive = false;  // Activate the test with a live server (which may fail)?
 
 
-export default function test(CB, expect, T,L,D) {
+describe('DictionaryRemoteDemo.js', function() {
 
-  var testLive = false;  // Test with a live server.
-
-  var dict = new DictionaryRemoteDemo();
   var lastUrl = '';
+  var dict = new DictionaryRemoteDemo();
+  addDummyReqObj(dict);
 
-  // Insert a dummy XMLHttpRequest object that we can spy on.
-  dict._getReqObj = function() {
-    return {
-      status: 200,
-      readyState: 4,
-      responseText: '["test"]',
-      open: (type, url, async) => {
-        //responseText = '{"i":"A:01", "d":"A", "t": [ {"s":"x"} ], "w":"S"}';
-        lastUrl = url;
-      },
-      send: function () { callAsync(this.onreadystatechange); }
+  // Inserts a dummy XMLHttpRequest object in `dict`, that we can spy on.
+  function addDummyReqObj(dict) {
+    dict._getReqObj = function() {
+      return {
+        status: 200,
+        readyState: 4,
+        responseText: '["test"]',
+        open: (type, url, async) => {
+          //responseText = '{"i":"A:01", "d":"A", "t": [ {"s":"x"} ], "w":"S"}';
+          lastUrl = url;
+        },
+        send: function () { callAsync(this.onreadystatechange); }
+      }
     }
   }
 
 
-  asyncWaterfall([
-
-    // Tests that the get-functions call their URL with the given options,
-    // and that they return the data they got back from the request.
-
-    // --- Test: getDictInfos().
-    cb => {
-      T('getDictInfos(), and URL-encodes an argument');
+  describe('getDictInfos()', function() {
+    it('calls its URL with given options filled in, URL-encoded; ' +
+      'and returns the data it got back, JSON-parsed', function(cb) {
       var opt = {
         filter: {id: ['A', 'B'], name: 'Ab C'}, sort: 'id',
         page: 2,  perPage: 5
@@ -43,18 +42,20 @@ export default function test(CB, expect, T,L,D) {
         res.should.deep.equal({items: ['test']});
         cb();
       });
-    },
-    cb => {
-      T('getDictInfos(), without options');
+    });
+
+    it('calls its URL correctly, also with no options given', function(cb) {
       dict.getDictInfos(0, (err, res) => {
         lastUrl.should.equal('http://test/dic?i=&n=&s=&p=&c=');
         cb();
       });
-    },
+    });
+  });
 
-    // --- Test: getEntries().
-    cb => {
-      T('getEntries(), and URL-encodes an argument');
+
+  describe('getEntries()', function() {
+    it('calls its URL with given options filled in, URL-encoded; ' +
+      'and returns the data it got back, JSON-parsed', function(cb) {
       var opt = {
         filter: {i: 'A:01', d: 'A'}, sort: 'd',
         z: true,  page: 2,  perPage: 5
@@ -65,33 +66,34 @@ export default function test(CB, expect, T,L,D) {
         res.should.deep.equal({items: ['test']});
         cb();
       });
-    },
-    cb => {
-      T('getEntries(), without options');
+    });
+
+    it('calls its URL correctly, also with no options given', function(cb) {
       dict.getEntries(0, (err, res) => {
         lastUrl.should.equal('http://test/ent?i=&d=&z=true&s=&p=&c=');
         cb();
       });
-    },
-    cb => {
-      T('getEntries(), without z-object');
+    });
+
+    it('calls its URL correctly, also for no z-object', function(cb) {
       dict.getEntries({z: false}, (err, res) => {
         lastUrl.should.equal('http://test/ent?i=&d=&z=false&s=&p=&c=');
         cb();
       });
-    },
-    cb => {
-      T('getEntries(), with z-pruning');
+    });
+
+    it('calls its URL correctly, also with z-pruning', function(cb) {
       dict.getEntries({z: ['x', 'y', 'z']}, (err, res) => {
         lastUrl.should.equal('http://test/ent?i=&d=&z=x,y,z&s=&p=&c=');
         cb();
       });
-    },
+    });
+  });
 
 
-    // --- Test: getRefTerms().
-    cb => {
-      T('getRefTerms()');
+  describe('getRefTerms()', function() {
+    it('calls its URL with given options filled in; ' +
+      'and returns the data it got back, JSON-parsed', function(cb) {
       var opt = {filter: {s: ['a', 'b']}, page: 2, perPage: 5};
       dict.getRefTerms(opt, (err, res) => {
         expect(err).to.equal(null);
@@ -99,18 +101,20 @@ export default function test(CB, expect, T,L,D) {
         res.should.deep.equal({items: ['test']});
         cb();
       });
-    },
-    cb => {
-      T('getRefTerms(), without options');
+    });
+
+    it('calls its URL correctly, also with no options given', function(cb) {
       dict.getRefTerms(0, (err, res) => {
         lastUrl.should.equal('http://test/ref?f=&p=&c=');
         cb();
       });
-    },
+    });
+  });
 
-    // --- Test: getMatchesForString().
-    cb => {
-      T('getMatchesForString(), and URL-encodes the string');
+
+  describe('getMatchesForString()', function() {
+    it('calls its URL with given options filled in, URL-encoded; ' +
+      'and returns the data it got back, JSON-parsed', function(cb) {
       var opt = {
         filter: {d: ['A', 'B', 'C']}, sort: {d: ['A', 'B']},
         z: 'x',  page: 2,  perPage: 5
@@ -121,18 +125,18 @@ export default function test(CB, expect, T,L,D) {
         res.should.deep.equal({items: ['test']});
         cb();
       });
-    },
-    cb => {
-      T('getMatchesForString(), without options');
+    });
+
+    it('calls its URL correctly, also with no options given', function(cb) {
       dict.getMatchesForString('x', 0, (err, res) => {
         expect(err).to.equal(null);
         lastUrl.should.equal('http://test/mat?s=x&d=&s=&p=&c=');
         cb();
       });
-    },
-    cb => {
-      T('getMatchesForString() for empty string: makes no server-request and ' +
-        ' returns an empty list');
+    });
+
+    it('for an empty string, makes no server-request and ' +
+        'returns an empty list', function(cb) {
       lastUrl = 'abcd'
       dict.getMatchesForString('', 0, (err, res) => {
         expect(err).to.equal(null);
@@ -140,9 +144,9 @@ export default function test(CB, expect, T,L,D) {
         res.should.deep.equal({items: []});
         cb();
       });
-    },
-    cb => {
-      T('getMatchesForString(), with a number-string handled by parent class');
+    });
+
+    it('lets the parent class add a number-string match', function(cb) {
       dict.getMatchesForString('5', 0, (err, res) => {
         lastUrl.should.equal('http://test/mat?s=5&d=&s=&p=&c=');
         res.should.deep.equal({items: [
@@ -151,9 +155,9 @@ export default function test(CB, expect, T,L,D) {
         ]});
         cb();
       });
-    },
-    cb => {
-      T('getMatchesForString(), should report JSON.parse() errors');
+    });
+
+    it('reports JSON.parse() errors', function(cb) {
       var bk = dict._getReqObj;
       dict._getReqObj = function() {
         return {
@@ -164,51 +168,70 @@ export default function test(CB, expect, T,L,D) {
           send: function () { callAsync(this.onreadystatechange); }
         }
       }
-
       dict.getMatchesForString('5', 0, (err, res) => {
         err.should.not.equal(null);  // <--- It should forward an error.
-
-        dict._getReqObj = bk;  // Restore.
+        dict._getReqObj = bk;  // Restore the original dummy request-object.
         dict.getMatchesForString('5', 0, (err, res) => {
-          expect(err).to.equal(null);  // No error anymore now.
+          expect(err).to.equal(null);  // Checks: no error anymore now.
           cb();
         });
       });
-    },
+    });
+  });
 
-    // --- Test: getMatchesForString() on PubDictionaries. Note: 1 dictID only.
-    cb => {
-      if (!testLive)  return cb();
 
-      T('getMatchesForString(): live test/demo with PubDictionaries. ' +
-        'NOTE: This test must not stay active, because it depends on a ' +
-        'breakable/changeable network, remote server, API, and dictionary.');
-      var dict = new DictionaryRemoteDemo({
-        urlGetMatches: `http://pubdictionaries.org/dictionaries/$filterD/` +
-                       `prefix_completion?term=$str`
-      });
+  // Live test/demo with PubDictionaries.org.
+  // NOTE: This test must not stay active, because it depends on a
+  //       breakable/changeable network, remote server, API, and dictionary.
+  describe('Simple demo subclass that fetches+parses string-matches ' +
+    'from pubdictionaries.org (using 1 subdictionary only)', function() {
+    if (!testLive)  return;
 
+    // Make a subclass of DictionaryRemoteDemo, that adds a layer of code
+    // that parses the specific data that pubdictionaries.org returns.
+    class DictionaryPubDictionaries extends DictionaryRemoteDemo {
+      constructor(options) {
+        super(options);
+      }
+      getMatchesForString(str, options, cb) {
+        super.getMatchesForString(str, options, (err, res) => {
+          if (err)  return cb(err);
+          var arr = res.items.map(e =>
+            e.w ? e :  // Don't convert match-objects generated by parent-class.
+            ({
+              i: e.identifier,
+              d: options.filter.d,
+              s: e.label,
+              w: e.label.startsWith(str) ? 'S' : 'T',
+              z: {
+                dictionary_id: e.dictionary_id,
+                id: e.id,
+                label_length: e.label_length,
+                mode: e.mode,
+                norm1: e.norm1,
+                norm2: e.norm2,
+                created_at: e.created_at,
+                updated_at: e.updated_at
+              }
+            })
+          );
+          cb(err, {items: arr});
+        });
+      }
+    }
+
+    var dict = new DictionaryPubDictionaries({
+      urlGetMatches: `http://pubdictionaries.org/dictionaries/$filterD/` +
+                     `prefix_completion?term=$str`
+    });
+
+    it('returns match-objects for entries that match a string', function(cb) {
       var str = 'cell bud';
       var dictID = 'GO-BP';
       dict.getMatchesForString(str, {filter: {d: dictID}}, (err, res) => {
         expect(err).to.equal(null);
-        var arr = res.items.map(e => ({
-          i: e.identifier,
-          d: dictID,
-          s: e.label,
-          w: e.label.startsWith(str) ? 'S' : 'T',
-          z: {
-            dictionary_id: e.dictionary_id,
-            id: e.id,
-            label_length: e.label_length,
-            mode: e.mode,
-            norm1: e.norm1,
-            norm2: e.norm2,
-            created_at: e.created_at,
-            updated_at: e.updated_at
-          }
-        }));
-        var x = arr[0];  delete x.z;
+        var x = res.items[0];
+        delete x.z;  // Ignore the z-object for the comparison.
         x.should.deep.equal({
           i: 'http://purl.obolibrary.org/obo/GO_0007114',
           d: dictID,
@@ -217,9 +240,6 @@ export default function test(CB, expect, T,L,D) {
         });
         cb();
       });
-    }
-
-  ], CB);
-}
-
-//test.act = 2;
+    });
+  });
+});
