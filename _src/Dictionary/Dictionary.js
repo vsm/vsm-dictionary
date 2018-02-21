@@ -25,8 +25,20 @@ module.exports = class Dictionary {
   }
 
 
-  // Fetches match-objects for fixedTerms, i.e for a conceptID + optional term,
-  // and stores them in `this.fixedTermsCache`, accessible via a lookup key.
+  // Fetches and stores (pre-loads) match-objects for a number of fixedTerms.
+  // - The fixedTerms are represented by `idts`, which stands for (a list of):
+  //   "ID plus optional term-string"s. So each 'idts' item uniquely identifies
+  //   a fixedTerm.
+  // - For each fixedTerm, `loadFixedTerms()` uses `getEntries()` (implemented
+  //   by some subclass) to get full information about the entry it represents,
+  //   and already builds a match-object for them.
+  // - Each of these match-objects is stored in `this.fixedTermsCache`,
+  //   and is accessible by a lookup key, which is calculated from the
+  //   ID+optional-term-string.
+  // - Later, when a call is made to `_getFixedMatchesForString()`, with as
+  //   `options.idts` a subset of the `idts` preloaded here, that function will
+  //   be able to get the relevant match-objects from the cache, without having
+  //   to launch extra query on the data storage.
   // Always calls `cb` on the next event-loop, as long as getEntries() does too.
   loadFixedTerms(idts, options, cb) {
     idts = this._prepIdts(idts);
@@ -86,12 +98,12 @@ module.exports = class Dictionary {
   // `getMatchesForString()` (which calls this function).
   // Only has an effect for result-page 1.
   // Always calls `cb` on the next event-loop.
-  addExtraMatchesForString(str, arr, opt, cb) {
+  addExtraMatchesForString(str, arr, options, cb) {
     // If the requested page > 1, add no matches.
-    if (opt && (opt.page || 1) > 1)  return callAsync(cb, null, arr);
+    if (options && (options.page || 1) > 1)  return callAsync(cb, null, arr);
     arr = arr.slice(0);  // Duplicate before editing.
 
-    var res = this._getFixedMatchesForString(str, opt);
+    var res = this._getFixedMatchesForString(str, options);
 
     if (res.length) {
       // Merge after one possible 'R'-type match, and before all others.
@@ -122,13 +134,13 @@ module.exports = class Dictionary {
   // Searches `str` in `options.idts`'s linked fixedTerms's strings,
   // and (synchronously) returns newly constructed match-objects,
   // sorted and (extra) z-pruned.
-  _getFixedMatchesForString(str, opt) {
+  _getFixedMatchesForString(str, options) {
     // If no FT-lookup is requested, return no matches.
-    if (!opt || !opt.idts)  return [];
+    if (!options || !options.idts)  return [];
 
     var arr = [];
     var str = str.toLowerCase();
-    arr = this._prepIdts(opt.idts)
+    arr = this._prepIdts(options.idts)
       .reduce((arr, x) => {
         // First map the id+strs onto match-objects, which may hold updated
         // term-strings, i.e. ones that may have been mapped on a first-term.
@@ -147,7 +159,7 @@ module.exports = class Dictionary {
       strcmp(a.w, b.w) || strcmp(a.s, b.s) || strcmp(a.d, b.d) || a.i - b.i
     );
 
-    return zPropPrune(arr, opt.z);
+    return zPropPrune(arr, options.z);
   }
 
 
