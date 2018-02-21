@@ -1,9 +1,9 @@
-// In the browser, deliver the data via a JSONP-type call.
+// For the browser, deliver the data via a JSONP-type call.
 if(typeof gotData !== 'undefined')  gotData(createData());
 
 
-// In Node.js, deliver the data via `module.exports`. But define `module` first,
-// for browser compatibility.
+// For Node.js, deliver the data via `module.exports`. But define `module`
+// first, for browser compatibility.
 if(typeof module === 'undefined')  { var module = {}; }
 module.exports = createData();
 
@@ -131,7 +131,7 @@ function createData() {
     ],
 
     refTerms: [
-    'it', 'this', 'that', 'they', 'these'
+      'it', 'this', 'that', 'they', 'these'
     ]
   };
 }

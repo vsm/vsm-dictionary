@@ -1,17 +1,14 @@
 {
   "name": "vsm-dictionary",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "VSM-dictionary interface, local dictionary implementation, and remote dictionary demo",
   "main": "dist/vsm-dictionary.js",
   "module": "_src/main.js",
   "scripts": {
     "test": "mocha  \"_src/**/*.test.js\" --check-leaks",
     "testw": "mocha  \"_src/**/*.test.js\" --check-leaks --watch",
-    "start": "npm run dev:test",
-    "dev": "webpack-dev-server --config webpack.config.js --env.NODE_ENV=development",
-    "dev:test": "webpack-dev-server --config webpack.config.js --env.NODE_ENV=development --env.ADDTESTS=1",
-    "build": "webpack --config webpack.config.js --env.NODE_ENV=production",
-    "build:test": "webpack --config webpack.config.js --env.NODE_ENV=production --env.ADDTESTS=1"
+    "start": "npm run demo",
+    "demo": "webpack-dev-server --config webpack.config.js"
   },
   "keywords": [
     "VSM",
@@ -33,15 +30,12 @@
   "devDependencies": {
     "@babel/core": "^7.0.0-beta.40",
     "@babel/preset-env": "^7.0.0-beta.40",
-    "async-waterfall": "^0.1.5",
     "babel-loader": "^8.0.0-beta.0",
     "chai": "^4.1.2",
-    "clean-webpack-plugin": "^0.1.18",
     "copy-webpack-plugin": "^4.4.1",
     "html-webpack-plugin": "^2.30.1",
     "mocha": "^5.0.1",
     "text-transform-loader": "^2.0.0",
-    "uglifyjs-webpack-plugin": "^1.1.8",
     "webpack": "^3.11.0",
     "webpack-dev-server": "^2.11.1"
   },

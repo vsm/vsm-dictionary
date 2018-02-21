@@ -1,28 +1,24 @@
 /*
-With Node.js, we can import `VsmDictionary` with `require()`.
+Demo of (only) the `getEntries()` and `getMatchesForString()` functions
+of `DictionaryLocal`, using the data in `demoData.js`.
 
-NOTE!: This only works from within the `dist` folder. This JS-file will be
-copied there by running `npm run build`, (or `npm run build:test`).
-This makes webpack compile the modules;s code into a package that can be
-`require()`d from within a Node.js script, like this one.
+Just run: `node demoInNode.js`.
 */
 
+
+// With Node.js, we can import `VsmDictionary` with `require()`.
 const VsmDictionary = require('./vsm-dictionary');
 
 
-// ---------- TESTS ----------
-if (VsmDictionary.test) {
-  var options = { testAll: 1, logTestNames: 0 };
-  VsmDictionary.test(options, runDemo);  // When done, run demo.
-}
-else runDemo();
+runDemo();
 
 
-
-// ---------- DEMO ----------
 var dict;
 
 function runDemo() {
+  console.log('\n=== This is a basic demo of (only) the' +
+    '\n=== `getEntries()` and `getMatchesForString()` functions.');
+
   const demoData = require('./demoData');
   dict = new VsmDictionary.DictionaryLocal(demoData);
   demo1();
@@ -31,7 +27,7 @@ function runDemo() {
 
 
 function demo1() {
-  console.log('--- DictionaryLocal entries sample:');
+  console.log('\n--- DictionaryLocal entries sample:');
   dict.getEntries({ filter: { d: 'BIO' } },  function(err, res) {
     console.dir(res.items.slice(0, 5), {depth: 4});
     console.log(dict.entries.length + ' entries.');
@@ -43,7 +39,7 @@ function demo1() {
 
 function demo2() {
   var str = 'in';
-  console.log('--- DictionaryLocal matches for \'' + str + '\':');
+  console.log('\n--- DictionaryLocal match-objects for \'' + str + '\':');
 
   var options = { perPage: 10 };
   dict.getMatchesForString(str, options, function (err, res) {
@@ -56,7 +52,7 @@ function demo2() {
 function demo3() {
   var str = 'in';
   var dictID = 'BIO';
-  console.log('--- DictionaryLocal matches for \'' + str + '\', ' +
+  console.log('\n--- DictionaryLocal match-objects for \'' + str + '\', ' +
     'with dictID-filter for \'' + dictID + '\':');
 
   var options = { perPage: 10,  filter: {d: dictID} };
@@ -68,7 +64,6 @@ function demo3() {
 
 
 function done() {
-  console.log('--- Done.');
 }
 
 

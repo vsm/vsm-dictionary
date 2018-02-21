@@ -1,131 +1,74 @@
 /*
-npm i -D
-  webpack  clean-webpack-plugin  html-webpack-plugin  text-transform-loader
-  webpack-dev-server  uglifyjs-webpack-plugin  copy-webpack-plugin
-  babel-loader@8.0.0-beta.0  @babel/core  @babel/preset-env
-  async-waterfall  chai
+Webpack is only used for creating an interactive demo in the browser.
+
+It bundles all modules (in-memory),
+starts the webpack development server with live-reload, and
+serves a demo webpage that loads both the bundled vsm-dictionary and demo-code.
+
+See also 'demoInBrowser.js'.
 */
 
 
 const path = require('path');
 const webpack = require('webpack');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-// SETTINGS
-const srcFoldN = '_src';
-const src  = path.resolve(__dirname, './' + srcFoldN);
-const dist = path.resolve(__dirname, './dist');
-const ifAddTestsRegex = /\/\*\-\-\[IF_ADDTESTS\]\-\-/g;
-const sourceMapInProd    = false;
+const src  = path.resolve(__dirname, './_src');
 
 
 module.exports = (env = {}) => {
+  return {
+    devServer: {
+      port: 3000,
+      open: true
+    },
 
-  var DEV      = (env.NODE_ENV == 'development');
-  var PROD     = (env.NODE_ENV == 'production') || !DEV;
-  var ADDTESTS = !!env.ADDTESTS;  // So, if not set, excludes tests by default.
+    entry: src + '/vsm-dictionary.js',
 
-  const UglifyJSPlugin = !PROD ? 0 : require('uglifyjs-webpack-plugin');
+    devtool: 'inline-source-map',
 
-
-  return Object.assign(
-
-    (!PROD ? {
-      devServer: {
-        port: 3000,
-        open: true,
-        contentBase: [src, dist],  // Include `src` and do `watchContentBase`..
-        watchContentBase: true  // ..for live-reload on `src/demo*.js` changes.
-      }
-    } : {}),
-
-
-    {
-      entry: src + '/vsm-dictionary.js',
-
-
-      devtool: !PROD ? 'inline-source-map' :
-               (sourceMapInProd ? 'hidden-source-map' : false),
-
-
-      module: {
-        rules: [
-          {
-            test: /\.js$/,
-            include: src,
-            exclude: /(node_modules|bower_components|demo.*\.js)/,
-            use: [{
-                loader: 'babel-loader',
-                options: { presets: ['@babel/preset-env'] }
-              }, {
-                loader: 'text-transform-loader',
-                options: {
-                  transformText: s =>
-                    s.replace(/require\('xmlhttprequest'\)/g, '{}')
-                }
-              }]
-          },
-          {
-            test: /vsm-dictionary\.js$/,
-            include: src,
-            exclude: /(node_modules|bower_components)/,
-            use: {
+    module: {
+      rules: [
+        {
+          test: /\.js$/,
+          include: src,
+          exclude: /(node_modules|demo.*\.js)/,
+          use: [{
+              loader: 'babel-loader',
+              options: { presets: ['@babel/preset-env'] }
+            }, {
               loader: 'text-transform-loader',
               options: {
-                transformText: s => ADDTESTS ? s.replace(ifAddTestsRegex,'') : s
+                transformText: s =>  // Exclude this package, for the browser.
+                  s.replace(/require\('xmlhttprequest'\)/g, '{}')
               }
-            }
-          }
-        ]
-      },
+            }]
+        }
+      ]
+    },
 
+    node: {
+      fs: 'empty',
+      child_process: 'empty'  // Extra safety against 'xmlhttprequest'-error.
+    },
 
-      node: {
-        fs: 'empty',
-        child_process: 'empty'  // Extra safety against xmlhttprequest-error.
-      },
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: src + '/demo.html',
+        inject: false
+      }),
+      new CopyWebpackPlugin([
+        { from: src + '/demoData.js' },
+        { from: src + '/demoInBrowser.js' },
+        { from: src + '/demoInNode.js' },
+      ])
+    ],
 
-
-      plugins: [  // -- DEV+PROD COMMON PLUGINS --
-        new webpack.DefinePlugin({
-          'process.env.NODE_ENV': JSON.stringify(env.NODE_ENV)
-        }),
-        new CleanWebpackPlugin([ dist ]),
-        new HtmlWebpackPlugin({
-          template: src + '/index.html',
-          inject: false
-        }),
-        new CopyWebpackPlugin([
-          { from: src + '/demoData.js' },
-          { from: src + '/demoInBrowser.js' },
-          { from: src + '/demoInNode.js' },
-        ])
-      ] .concat( !PROD ?
-
-        [ // -- DEV PLUGINS --
-        ] :
-
-        [ // -- PROD PLUGINS --
-          new UglifyJSPlugin( Object.assign( {},
-            (sourceMapInProd ? { sourceMap: true } : {})
-          ))
-        ]
-      ),
-
-
-      output: {
-        path: dist,
-        filename: 'vsm-dictionary.js' ,
-        library: {
-          root: 'VsmDictionary',  // Expose as global variable for browsers.
-          amd: 'vsm-dictionary',
-          commonjs: 'vsm-dictionary'  // Expose as a module.exports for Node.js.
-        },
-        libraryTarget: 'umd'
-      }
-
+    output: {
+      filename: 'bundle.js' ,  // Used by HtmlWebpackPlugin.
+      library: 'VsmDictionary',  // } Expose as a global variable for browsers.
+      libraryTarget: 'window'    // }  " .
     }
-  );
+  }
 }

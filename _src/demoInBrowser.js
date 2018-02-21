@@ -1,36 +1,28 @@
 /*
-In the browser, we can access `VsmDictionary` as a global variable.
+NOTE!: This only works with Webpack.
+Start the demo by running `npm run demo`.
 
-NOTE!: This only works from within the `dist` folder. This JS-file (and also a
-an updated index.html) will be copied there by running `npm run build`,
-(or `npm run build:test`).
-This makes webpack compile the module's code into a package that can be
-loaded by an HTML-file, and that exposes a global variable `VsmDictionary`
-that can be accessed by a JS-script, like this one.
+The Webpack development-server bundles all modules, which are Node.js-based,
+so they can run in the browser instead. The bundled JS-script will expose a
+global variable `VsmDictionary` that can be accessed by this demo-script.
+
+Webpack serves the bundle in-memory (so, writing no files to disk), along with
+a(n updated) demo.html webpage that loads both that bundle and this demo-script.
 */
-console.dir(VsmDictionary)
 
 
-// ---------- TESTS ----------
-if (VsmDictionary.test) {
-  var options = {
-    testAll: 1,
-    logTestNames: 0,  // Set to 1 to make it verbose.
-    logModuleNames: 1
-  };
-
-  VsmDictionary.test(options, runDemo);  // Run tests, and when done, run demo.
-}
-else runDemo();
+// In the browser, Webpack lets us access `VsmDictionary` as a global variable.
+runDemo();
 
 
-
-// ---------- DEMO ----------
-var showDemoLogOutput = true;
 var matchesMaxCount = 20;
 
 
 function runDemo() {
+  // Replace the warning of running demo without Webpack, with an info message.
+  if(VsmDictionary)  document.getElementById('demo').innerHTML =
+    'Note: this demonstrates (only) the \'getMatchesForString()\' function.';
+
   // Load the data via a JSONP script, which will call `gotData()`.
   var script = document.createElement('script');
   script.src = 'demoData.js';
@@ -49,17 +41,7 @@ function gotData(demoData) {
 function makeDemoLocal(demoData) {
   var dict = new VsmDictionary.DictionaryLocal(demoData);
 
-  // 1. Demo log output.
-  if(showDemoLogOutput) {
-    console.log('--- VsmDictionary.DictionaryLocal entries sample:');
-    dict.getEntries({ filter: { d: 'BIO' } },  function(err, res) {
-      console.dir(res.items.slice(0, 5), {depth: 4});
-      console.log(dict.entries.length + ' entries.');
-      window.scrollTo(0, document.body.scrollHeight);
-    });
-  }
-
-  // 2. Make an interactive demo panel.
+  // Make an interactive demo panel.
   var elems = createDemoPanel({
     title: 'VsmDictionary.DictionaryLocal &nbsp;demo:',
     //+'&nbsp;<span style="color:#777">(with no options or fixedTerms)</span>:',
@@ -109,7 +91,7 @@ function makeDemoRemote() {
     }
   }
 
-  // 1. Make an instance of DictionaryRemote subclass.
+  // 1. Make an instance of that subclass of DictionaryRemote.
   var dict = new DictionaryPubDictionaries({
     urlGetMatches: 'http://pubdictionaries.org/dictionaries/$filterD/' +
                    'prefix_completion?term=$str'
@@ -117,7 +99,8 @@ function makeDemoRemote() {
 
   // 2. Make an interactive demo panel.
   var elems = createDemoPanel({
-    title: 'VsmDictionary.DictionaryRemoteDemo + \'PubDictionaries.org\':',
+    title: 'VsmDictionary.DictionaryRemoteDemo, ' +
+           'with a subclass that connects to \'PubDictionaries.org\':',
     dictionary: dict,
     dictID: 'GO-BP',
     initialSearchStr: 'cell b',

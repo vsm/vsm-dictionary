@@ -183,7 +183,7 @@ describe('DictionaryRemoteDemo.js', function() {
   // Live test/demo with PubDictionaries.org.
   // NOTE: This test must not stay active, because it depends on a
   //       breakable/changeable network, remote server, API, and dictionary.
-  describe('Simple demo subclass that fetches+parses string-matches ' +
+  describe('Simple demo-subclass that fetches & parses string-matches ' +
     'from pubdictionaries.org (using 1 subdictionary only)', function() {
     if (!testLive)  return;
 
