@@ -14,7 +14,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-const src  = path.resolve(__dirname, './_src');
+const src  = path.resolve(__dirname, './src');
 
 
 module.exports = (env = {}) => {

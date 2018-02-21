@@ -26,7 +26,7 @@ can easily work with.
 
 Any future implementations of a VsmDictionary (which would communicate with
 a particular dictionary-webservice) should follow the interface
-that is specified in [Dictionary.spec.md](_src/Dictionary/Dictionary.spec.md).
+that is specified in [Dictionary.spec.md](src/Dictionary/Dictionary.spec.md).
 
 <br>
 
@@ -179,8 +179,8 @@ dict.addDictInfos(dictInfo, (err) => {
 which gives the same output.
 
 More examples and info are included in the demo files
-[demoInNode.js](_src/demoInNode.js)
-and [demoInBrowser.js](_src/demoInBrowser.js) (see also below).
+[demoInNode.js](src/demoInNode.js)
+and [demoInBrowser.js](src/demoInBrowser.js) (see also below).
 
 <br>
 
@@ -200,7 +200,7 @@ for a single test run under Node.js.
 Run `npm run dev` (or `npm run dev:test`) to start a demo in the browser.
 
 The top component will show an input-field for interactive string-match
-lookup based on a `DictionaryLocal`, using sample data from `_src/demoData.js`.   
+lookup based on a `DictionaryLocal`, using sample data from `src/demoData.js`.   
 The second input-field does this based on (only) a single dictionary
 from PubDictionaries.org, based on `DictionaryRemoteDemo`.
 
