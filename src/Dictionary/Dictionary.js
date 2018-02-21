@@ -140,18 +140,21 @@ module.exports = class Dictionary {
 
     var arr = [];
     var str = str.toLowerCase();
-    arr = this._prepIdts(options.idts)
+    var idts = this._prepIdts(options.idts);
+
+    // Here we could first `.map()` the given `idts` onto match-objects from
+    // `fixedTermsCache`, and then filter out those that didn't have a match.
+    // But we can combine these two operations with a single `.reduce()`.
+    arr = idts
       .reduce((arr, x) => {
-        // First map the id+strs onto match-objects, which may hold updated
-        // term-strings, i.e. ones that may have been mapped on a first-term.
         var k = this._idtToFTCacheKey(x.i, x.s || '');
-        var m = this.fixedTermsCache[k];
-        if (!m)  return arr;  // Drop id+strs that have no match in the cache.
+        var match = this.fixedTermsCache[k];
+        if (!match)  return arr;  // Drop id+strs without match in the cache.
 
-        var w = m.s.toLowerCase().startsWith(str) ? 'F' :
-                m.s.toLowerCase().includes  (str) ? 'G' : 0;
+        var w = match.s.toLowerCase().startsWith(str) ? 'F' :
+                match.s.toLowerCase().includes  (str) ? 'G' : 0;
 
-        if (w)  arr.push( Object.assign( deepClone(m), {w} ) );
+        if (w)  arr.push( Object.assign( deepClone(match), {w} ) );
         return arr;
       }, arr);
 
