@@ -4,7 +4,7 @@ const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
 
-describe.only('DictionaryLocal.js', function() {
+describe('DictionaryLocal.js', function() {
   var dict;
 
   // These dictInfos will be used in most of the tests.
