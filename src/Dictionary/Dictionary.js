@@ -94,8 +94,8 @@ module.exports = class Dictionary {
 
 
   // Gets possible fixedTerm- and numberString match-objects for `str`, and
-  // merges them into an array of normal matches, coming from a subclass's
-  // `getMatchesForString()` (which calls this function).
+  // merges them into an array of normal matches, which come from a subclass's
+  // `getMatchesForString()` (which must make the call to this function).
   // Only has an effect for result-page 1.
   // Always calls `cb` on the next event-loop.
   addExtraMatchesForString(str, arr, options, cb) {
@@ -133,7 +133,7 @@ module.exports = class Dictionary {
 
   // Searches `str` in `options.idts`'s linked fixedTerms's strings,
   // and (synchronously) returns newly constructed match-objects,
-  // sorted and (extra) z-pruned.
+  // sorted and z-pruned (once more, on top of what `loadFixedTerms()` pruned).
   _getFixedMatchesForString(str, options) {
     // If no FT-lookup is requested, return no matches.
     if (!options || !options.idts)  return [];
