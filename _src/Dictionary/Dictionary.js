@@ -62,7 +62,7 @@ module.exports = class Dictionary {
 
 
   // Brings a conceptID-and-optional-termStrings array into canonical form,
-  // e.g. `['id', ...]` --> `[{i:'id', s:..}, ...]`.
+  // e.g. `['id', {i:'id2', s:..}, ...]` --> `[{i:'id'}, {i:'id2', s:..}, ...]`.
   _prepIdts(idts) {
     return asArray(idts).map(x => !x.i ? {i: x} : x);
   }

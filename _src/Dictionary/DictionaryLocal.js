@@ -69,11 +69,12 @@ module.exports = class DictionaryLocal extends Dictionary {
 
 
   addDictionaryData(dictData = [], refTerms = []) {
-    /* Note: here we make *synchronous calls* to _add/update-DictInfo/etc().
-      This is possible because: 1. they only mock async callbacks; 2. we give
-      them a callback function that simply returns the first argument it gets
-      (so only error, not result); 3. we made those 5 functions always exit
-      via `*return* cb(err);` (not as just `cb(err);`). */
+    /* Note: here we make *synchronous calls* to _add/update-DictInfo/etc(),
+      which are in fact designed to return data asynchronously (= via callback).
+      This is possible because: 1. those 5 functions only mock async callbacks;
+      2. we give them a sync. callback function that simply `return`s the first
+      argument it gets (so only error, not result); 3. we made those functions
+      always exit via `*return* cb(err);` (never as `cb(err);`). */
     var cb = err => err;
     var errs = [];
     var err;
@@ -87,9 +88,11 @@ module.exports = class DictionaryLocal extends Dictionary {
         else if (e.d !== dict.id) {
           return errs.push(`an entry tries to override dictID \'${dict.id}\'`);
         }
-        e.i = this._makeStringConceptID(dict, e);
+
         err = this._addEntry(e, cb);
-        if (err)  err = this._updateEntry(e, cb);
+        if (err && err.endsWith('already exists')) {
+          err = this._updateEntry(e, cb);
+        }
         if (err)  errs.push(err);
       });
     });

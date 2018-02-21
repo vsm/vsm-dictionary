@@ -42,7 +42,7 @@ function createData() {
         {i:20,  x:'associated with', t:'at'},
         {i:7,   x: 'to be located in',
             t: [
-              {s: 'in', p: 1, y: ''}, 'is located in', 'located in',
+              {s: 'in', y: ''}, 'is located in', 'located in',
               'located at', 'at' ] },  /// {s:'locatedness-inside', y'i0-18'}
         {i:115, x: 'to happen in time period',
           t: ['in',  'during'] },

@@ -105,8 +105,8 @@ A `Dictionary` provides access to a (local or remote) list of
     - `t`: {Array(Object)} (optional):
               this may contain the entry's full terms-list `t`;
     - `z`: {Object} (optional):
-              is the entry's `z` info, and is only added if the entry had it too
-              and if it was requested or not un-requested.
+              is the entry's `z` info,  filtered according to the query's
+              `options.z` (see `getMatchesForString()`).
     + Note:
       + Several match-objects can have a same term `s` but linked to a different
         concept-ID `i`, or a different term `s` but linked to a same concept-ID!
