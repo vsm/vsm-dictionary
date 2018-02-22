@@ -2,6 +2,7 @@ const DictionaryRemoteDemo = require('./DictionaryRemoteDemo');
 const {callAsync} = require('./helpers/async');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
+const nock = require('nock');
 
 var testLive = false;  // Activate the test with a live server (which may fail)?
 
@@ -9,24 +10,26 @@ var testLive = false;  // Activate the test with a live server (which may fail)?
 describe('DictionaryRemoteDemo.js', function() {
 
   var lastUrl = '';
-  var dict = new DictionaryRemoteDemo();
-  addDummyReqObj(dict);
+  var dict;
 
-  // Inserts a dummy XMLHttpRequest object in `dict`, that we can spy on.
-  function addDummyReqObj(dict) {
-    dict._getReqObj = function() {
-      return {
-        status: 200,
-        readyState: 4,
-        responseText: '["test"]',
-        open: (type, url, async) => {
-          //responseText = '{"i":"A:01", "d":"A", "t": [ {"s":"x"} ], "w":"S"}';
-          lastUrl = url;
-        },
-        send: function () { callAsync(this.onreadystatechange); }
-      }
-    }
-  }
+  before(function() {
+    var urlBase = 'http://test';
+    dict = new DictionaryRemoteDemo({base: urlBase});
+
+    // Use 'nock' to override Node.js's `http.request()` for testing.
+    // (Note: the 'sinon' package would override XMLHttpRequest in _browser_).
+    nock(urlBase)
+      .persist()  // Respond in this same way to all requests.
+      .get(/.+/)
+      .reply(200, function(url) {
+        lastUrl = url;
+        return JSON.stringify(['test']);
+      });
+  });
+
+  after(function() {
+    nock.cleanAll();  // Important, prevents weird errors.
+  });
 
 
   describe('getDictInfos()', function() {
@@ -38,7 +41,7 @@ describe('DictionaryRemoteDemo.js', function() {
       };
       dict.getDictInfos(opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('http://test/dic?i=A,B&n=Ab%20C&s=id&p=2&c=5');
+        lastUrl.should.equal('/dic?i=A,B&n=Ab%20C&s=id&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
@@ -46,7 +49,7 @@ describe('DictionaryRemoteDemo.js', function() {
 
     it('calls its URL correctly, also with no options given', function(cb) {
       dict.getDictInfos(0, (err, res) => {
-        lastUrl.should.equal('http://test/dic?i=&n=&s=&p=&c=');
+        lastUrl.should.equal('/dic?i=&n=&s=&p=&c=');
         cb();
       });
     });
@@ -62,7 +65,7 @@ describe('DictionaryRemoteDemo.js', function() {
       };
       dict.getEntries(opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('http://test/ent?i=A%3A01&d=A&z=true&s=d&p=2&c=5');
+        lastUrl.should.equal('/ent?i=A%3A01&d=A&z=true&s=d&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
@@ -70,21 +73,21 @@ describe('DictionaryRemoteDemo.js', function() {
 
     it('calls its URL correctly, also with no options given', function(cb) {
       dict.getEntries(0, (err, res) => {
-        lastUrl.should.equal('http://test/ent?i=&d=&z=true&s=&p=&c=');
+        lastUrl.should.equal('/ent?i=&d=&z=true&s=&p=&c=');
         cb();
       });
     });
 
     it('calls its URL correctly, also for no z-object', function(cb) {
       dict.getEntries({z: false}, (err, res) => {
-        lastUrl.should.equal('http://test/ent?i=&d=&z=false&s=&p=&c=');
+        lastUrl.should.equal('/ent?i=&d=&z=false&s=&p=&c=');
         cb();
       });
     });
 
     it('calls its URL correctly, also with z-pruning', function(cb) {
       dict.getEntries({z: ['x', 'y', 'z']}, (err, res) => {
-        lastUrl.should.equal('http://test/ent?i=&d=&z=x,y,z&s=&p=&c=');
+        lastUrl.should.equal('/ent?i=&d=&z=x,y,z&s=&p=&c=');
         cb();
       });
     });
@@ -97,7 +100,7 @@ describe('DictionaryRemoteDemo.js', function() {
       var opt = {filter: {s: ['a', 'b']}, page: 2, perPage: 5};
       dict.getRefTerms(opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('http://test/ref?f=a,b&p=2&c=5');
+        lastUrl.should.equal('/ref?f=a,b&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
@@ -105,7 +108,7 @@ describe('DictionaryRemoteDemo.js', function() {
 
     it('calls its URL correctly, also with no options given', function(cb) {
       dict.getRefTerms(0, (err, res) => {
-        lastUrl.should.equal('http://test/ref?f=&p=&c=');
+        lastUrl.should.equal('/ref?f=&p=&c=');
         cb();
       });
     });
@@ -121,7 +124,7 @@ describe('DictionaryRemoteDemo.js', function() {
       };
       dict.getMatchesForString('ab c', opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('http://test/mat?s=ab%20c&d=A,B,C&s=A,B&p=2&c=5');
+        lastUrl.should.equal('/mat?s=ab%20c&d=A,B,C&s=A,B&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
@@ -130,7 +133,7 @@ describe('DictionaryRemoteDemo.js', function() {
     it('calls its URL correctly, also with no options given', function(cb) {
       dict.getMatchesForString('x', 0, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('http://test/mat?s=x&d=&s=&p=&c=');
+        lastUrl.should.equal('/mat?s=x&d=&s=&p=&c=');
         cb();
       });
     });
@@ -148,7 +151,7 @@ describe('DictionaryRemoteDemo.js', function() {
 
     it('lets the parent class add a number-string match', function(cb) {
       dict.getMatchesForString('5', 0, (err, res) => {
-        lastUrl.should.equal('http://test/mat?s=5&d=&s=&p=&c=');
+        lastUrl.should.equal('/mat?s=5&d=&s=&p=&c=');
         res.should.deep.equal({items: [
           { i: '00:5e+0', d: '00', s : '5', x: '[number]', w: 'N' },
           'test',

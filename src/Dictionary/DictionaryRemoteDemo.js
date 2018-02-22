@@ -21,17 +21,17 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
     var opt = options || {};
     super(opt);
 
-    var base = 'http://test/';
+    var base = opt.base || 'http://test';
     var pc = '&p=$page&c=$perPage';
 
     this.urlGetDictInfos = opt.urlGetDictInfos ||
-                           base + 'dic?i=$filterI&n=$filterN&s=$sort' + pc;
+                           base + '/dic?i=$filterI&n=$filterN&s=$sort' + pc;
     this.urlGetEntries   = opt.urlGetEntries   ||
-                           base + 'ent?i=$filterI&d=$filterD&z=$z&s=$sort' + pc;
+                           base + '/ent?i=$filterI&d=$filterD&z=$z&s=$sort'+ pc;
     this.urlGetRefTerms  = opt.urlGetRefTerms  ||
-                           base + 'ref?f=$filterS' + pc;
+                           base + '/ref?f=$filterS' + pc;
     this.urlGetMatches   = opt.urlGetMatches   ||
-                           base + 'mat?s=$str&d=$filterD&s=$sortD' + pc;
+                           base + '/mat?s=$str&d=$filterD&s=$sortD' + pc;
   }
 
 
@@ -135,8 +135,6 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
          `vsm-dictionary-remote-...`s, **SO THAT THEY WORK IN THE BROWSER TOO**;
          and the package-eliminating setup should be used when webpack'ing
          future, browser-based modules that include a `vsm-dictionary-remote..`.
-    3. By placing this in a separate function, we also make this request-
-       object replacable and spy-upon'able, for testing.
     */
     return new (typeof XMLHttpRequest !== 'undefined' ?
       XMLHttpRequest :  // In browser.
