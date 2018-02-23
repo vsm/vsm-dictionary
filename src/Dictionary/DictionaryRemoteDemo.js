@@ -8,7 +8,8 @@ options literally. (The required functions and options are described in the
 parent class's specification: 'Dictionary.spec.txt').
 
 It assumes that that server returns a JSON-array with requested data, which
-does not need to be processed further any more.
+does not need to be processed further any more. It simply wraps the
+received array into an `{ items: [...] }` object.
 */
 
 const Dictionary = require('./Dictionary');
@@ -71,7 +72,7 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
 
 
   getMatchesForString(str, options, cb) {
-    if(!str)  return cb(null, {items: []});
+    if (!str)  return cb(null, {items: []});
 
     var o = this._prepGetOptions(options, ['d'], ['d']);
     var url = this.urlGetMatches
@@ -135,6 +136,9 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
          `vsm-dictionary-remote-...`s, **SO THAT THEY WORK IN THE BROWSER TOO**;
          and the package-eliminating setup should be used when webpack'ing
          future, browser-based modules that include a `vsm-dictionary-remote..`.
+    3. By placing this in a separate function, we also make this request-
+       object replacable and spy-upon'able, for testing. This would be useful
+       if we ever need to make testing work in both Node.js and the browser.
     */
     return new (typeof XMLHttpRequest !== 'undefined' ?
       XMLHttpRequest :  // In browser.
@@ -149,7 +153,13 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
       if (req.readyState == 4) {
         if (req.status != 200)  cb('Error: req.status = ' + req.status);
         else {
-          try { cb(null, JSON.parse(req.responseText)); }
+          try {
+            var arr = JSON.parse(req.responseText);
+            if (!Array.isArray(arr)) {
+              return cb('The server did not send an Array');
+            }
+            cb(null, arr);
+          }
           catch (err) { cb(err); }
         }
       }
