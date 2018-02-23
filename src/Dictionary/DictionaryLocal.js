@@ -33,6 +33,8 @@ module.exports = class DictionaryLocal extends Dictionary {
   }
 
 
+  // --- ADD/UPDATE/DELETE ONE OR MORE DICTINFOS/ENTRIES/REFTERMS ---
+
   addDictInfos(dictInfos, cb) {
     callAsyncOE(dictInfos, this._addDictInfo.bind(this), this._cbDict(cb));
   }
@@ -68,6 +70,19 @@ module.exports = class DictionaryLocal extends Dictionary {
   }
 
 
+  _cbDict(cb) {  // Gets called after every set of dictInfo-changing operations.
+    return (...args) => { this._sortDictInfos();  cb(...args); }
+  }
+
+
+  _cbEntr(cb) {
+    return (...args) => { this._sortEntries();  cb(...args); }
+  }
+
+
+
+  // --- CONVENIENT SYNCHRONOUS ADDING OF DICTINFOS+ENTRIES+REFTERMS ---
+
   addDictionaryData(dictData = [], refTerms = []) {
     /* Note: here we make *synchronous calls* to _add/update-DictInfo/etc(),
       which are in fact designed to return data asynchronously (= via callback).
@@ -102,16 +117,6 @@ module.exports = class DictionaryLocal extends Dictionary {
       if (err)  errs.push(err);
     });
     return !errs.length ? null : errs;
-  }
-
-
-  _cbDict(cb) {  // Gets called after every set of dictInfo-changing operations.
-    return (...args) => { this._sortDictInfos();  cb(...args); }
-  }
-
-
-  _cbEntr(cb) {
-    return (...args) => { this._sortEntries();  cb(...args); }
   }
 
 
