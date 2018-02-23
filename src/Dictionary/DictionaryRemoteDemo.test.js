@@ -4,32 +4,37 @@ const chai = require('chai');  chai.should();
 const expect = chai.expect;
 const nock = require('nock');
 
-var testLive = false;  // Activate the test with a live server (which may fail)?
-
 
 describe('DictionaryRemoteDemo.js', function() {
 
-  var lastUrl = '';
-  var dict;
+  var urlBase = 'http://test';
+  var dict = new DictionaryRemoteDemo({base: urlBase});
 
+
+  // We use the 'nock' package for testing HTTP requests. 'Nock' acts like
+  // a fake server, by overriding Node.js's `http.request()`, and it responds to
+  // specified URLs.
+  // (Note: 'nock' works with Node.js, while the 'sinon' package would override
+  //  the XMLHttpRequest object that is only available in browser-environments).
   before(function() {
-    var urlBase = 'http://test';
-    dict = new DictionaryRemoteDemo({base: urlBase});
+    /* [Disabled this line until nock's `enableNetConnect()` works again...]:
+      nock.disableNetConnect();
+    */
+  });
 
-    // Use 'nock' to override Node.js's `http.request()` for testing.
-    // (Note: the 'sinon' package would override XMLHttpRequest in _browser_).
-    nock(urlBase)
-      .persist()  // Respond in this same way to all requests.
-      .get(/.+/)
-      .reply(200, function(url) {
-        lastUrl = url;
-        return JSON.stringify(['test']);
-      });
+  afterEach(function() {
+    nock.cleanAll();
   });
 
   after(function() {
-    nock.cleanAll();  // Important, prevents weird errors.
+    nock.enableNetConnect();
   });
+
+
+  // Define a shorthand function for HTTP-replying with an array,
+  // so instead of:     `nock.reply(200, () => JSON.stringify(['a', 'b']));`,
+  // we can just write: `nock.reply(...R('a', 'b'));`.
+  var R = (...args) => [200, () => JSON.stringify([...args])];
 
 
   describe('getDictInfos()', function() {
@@ -39,17 +44,27 @@ describe('DictionaryRemoteDemo.js', function() {
         filter: {id: ['A', 'B'], name: 'Ab C'}, sort: 'id',
         page: 2,  perPage: 5
       };
+      // - A test only succeeds if 'dict' actually requests the specified URL.
+      // - We only test that DictionaryRemoteDemo will pass through any array
+      //   it is given by a server, so we do not need to bother with real
+      //   dictInfo/entry/etc-objects.
+      nock(urlBase)
+        .get('/dic?i=A,B&n=Ab%20C&s=id&p=2&c=5')
+        .reply(...R('test'));  // See explanation above.
       dict.getDictInfos(opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('/dic?i=A,B&n=Ab%20C&s=id&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
-    it('calls its URL correctly, also with no options given', function(cb) {
+    it('calls its URL, also with no options given', function(cb) {
+      nock(urlBase)
+        .get('/dic?i=&n=&s=&p=&c=')
+        .reply(...R('test'));
       dict.getDictInfos(0, (err, res) => {
-        lastUrl.should.equal('/dic?i=&n=&s=&p=&c=');
+        expect(err).to.equal(null);
+        res.should.deep.equal({items: ['test']});
         cb();
       });
     });
@@ -63,31 +78,45 @@ describe('DictionaryRemoteDemo.js', function() {
         filter: {i: 'A:01', d: 'A'}, sort: 'd',
         z: true,  page: 2,  perPage: 5
       };
+      nock(urlBase)
+        .get('/ent?i=A%3A01&d=A&z=true&s=d&p=2&c=5')
+        .reply(...R('test'));
       dict.getEntries(opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('/ent?i=A%3A01&d=A&z=true&s=d&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
-    it('calls its URL correctly, also with no options given', function(cb) {
+    it('calls its URL, also with no options given', function(cb) {
+      nock(urlBase)
+        .get('/ent?i=&d=&z=true&s=&p=&c=')
+        .reply(...R('test'));
       dict.getEntries(0, (err, res) => {
-        lastUrl.should.equal('/ent?i=&d=&z=true&s=&p=&c=');
+        expect(err).to.equal(null);
+        res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
-    it('calls its URL correctly, also for no z-object', function(cb) {
+    it('calls its URL, also for no z-object', function(cb) {
+      nock(urlBase)
+        .get('/ent?i=&d=&z=false&s=&p=&c=')
+        .reply(...R('test'));
       dict.getEntries({z: false}, (err, res) => {
-        lastUrl.should.equal('/ent?i=&d=&z=false&s=&p=&c=');
+        expect(err).to.equal(null);
+        res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
-    it('calls its URL correctly, also with z-pruning', function(cb) {
+    it('calls its URL, also with z-pruning', function(cb) {
+      nock(urlBase)
+        .get('/ent?i=&d=&z=x,y,z&s=&p=&c=')
+        .reply(...R('test'));
       dict.getEntries({z: ['x', 'y', 'z']}, (err, res) => {
-        lastUrl.should.equal('/ent?i=&d=&z=x,y,z&s=&p=&c=');
+        expect(err).to.equal(null);
+        res.should.deep.equal({items: ['test']});
         cb();
       });
     });
@@ -98,17 +127,23 @@ describe('DictionaryRemoteDemo.js', function() {
     it('calls its URL with given options filled in; ' +
       'and returns the data it got back, JSON-parsed', function(cb) {
       var opt = {filter: {s: ['a', 'b']}, page: 2, perPage: 5};
+      nock(urlBase)
+        .get('/ref?f=a,b&p=2&c=5')
+        .reply(...R('test'));
       dict.getRefTerms(opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('/ref?f=a,b&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
-    it('calls its URL correctly, also with no options given', function(cb) {
+    it('calls its URL, also with no options given', function(cb) {
+      nock(urlBase)
+        .get('/ref?f=&p=&c=')
+        .reply(...R('test'));
       dict.getRefTerms(0, (err, res) => {
-        lastUrl.should.equal('/ref?f=&p=&c=');
+        expect(err).to.equal(null);
+        res.should.deep.equal({items: ['test']});
         cb();
       });
     });
@@ -122,36 +157,48 @@ describe('DictionaryRemoteDemo.js', function() {
         filter: {d: ['A', 'B', 'C']}, sort: {d: ['A', 'B']},
         z: 'x',  page: 2,  perPage: 5
       };
+      nock(urlBase)
+        .get('/mat?s=ab%20c&d=A,B,C&s=A,B&p=2&c=5')
+        .reply(...R('test'));
       dict.getMatchesForString('ab c', opt, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('/mat?s=ab%20c&d=A,B,C&s=A,B&p=2&c=5');
         res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
-    it('calls its URL correctly, also with no options given', function(cb) {
+    it('calls its URL, also with no options given', function(cb) {
+      var called = false;
+      nock(urlBase)
+        .get('/mat?s=x&d=&s=&p=&c=')
+        .reply(...R('test'))
+        .on('replied', () => { called = true; });
       dict.getMatchesForString('x', 0, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('/mat?s=x&d=&s=&p=&c=');
+        called.should.equal(true);  // Test that this works, for the next test.
+        res.should.deep.equal({items: ['test']});
         cb();
       });
     });
 
     it('for an empty string, makes no server-request and ' +
         'returns an empty list', function(cb) {
-      lastUrl = 'abcd'
+      var called = false;
+      nock(urlBase)
+        .on('replied', () => { called = true; });
       dict.getMatchesForString('', 0, (err, res) => {
         expect(err).to.equal(null);
-        lastUrl.should.equal('abcd');  // Test that no request was made.
+        called.should.equal(false);  // Test that no request was made.
         res.should.deep.equal({items: []});
         cb();
       });
     });
 
     it('lets the parent class add a number-string match', function(cb) {
+      nock(urlBase)
+        .get('/mat?s=5&d=&s=&p=&c=')
+        .reply(...R('test'));
       dict.getMatchesForString('5', 0, (err, res) => {
-        lastUrl.should.equal('/mat?s=5&d=&s=&p=&c=');
         res.should.deep.equal({items: [
           { i: '00:5e+0', d: '00', s : '5', x: '[number]', w: 'N' },
           'test',
@@ -161,40 +208,40 @@ describe('DictionaryRemoteDemo.js', function() {
     });
 
     it('reports JSON.parse() errors', function(cb) {
-      var bk = dict._getReqObj;
-      dict._getReqObj = function() {
-        return {
-          status: 200,
-          readyState: 4,
-          responseText: 'not a JSON string',  // <--- Make it send invalid data.
-          open: () => {},
-          send: function () { callAsync(this.onreadystatechange); }
-        }
-      }
+      nock(urlBase)
+        .get('/mat?s=5&d=&s=&p=&c=')
+        .reply(200, () => 'not a JSON string');  // Make it send invalid data.
       dict.getMatchesForString('5', 0, (err, res) => {
-        err.should.not.equal(null);  // <--- It should forward an error.
-        dict._getReqObj = bk;  // Restore the original dummy request-object.
-        dict.getMatchesForString('5', 0, (err, res) => {
-          expect(err).to.equal(null);  // Checks: no error anymore now.
-          cb();
-        });
+        // It should forward a JSON-parsing error, which we receive here:
+        err.toString().startsWith('SyntaxError').should.equal(true);
+        cb();
+      });
+    });
+
+    it('reports error when the server does not reply with a JSON array',
+      function(cb) {
+      nock(urlBase)
+        .get('/mat?s=5&d=&s=&p=&c=')
+        .reply(200, () => '"not an Array"');
+      dict.getMatchesForString('5', 0, (err, res) => {
+        err.should.equal('The server did not send an Array');
+        cb();
       });
     });
   });
 
 
-  // Live test/demo with PubDictionaries.org.
-  // NOTE: This test must not stay active, because it depends on a
-  //       breakable/changeable network, remote server, API, and dictionary.
   describe('Simple demo-subclass that fetches & parses string-matches ' +
-    'from pubdictionaries.org (using 1 subdictionary only)', function() {
-    if (!testLive)  return;
+    'from (fake-served) pubdictionaries.org (using 1 subdictionary only)',
+    function() {
 
-    // Make a subclass of DictionaryRemoteDemo, that adds a layer of code
+    // 1.) Make a subclass of DictionaryRemoteDemo, that adds a layer of code
     // that parses the specific data that pubdictionaries.org returns.
     class DictionaryPubDictionaries extends DictionaryRemoteDemo {
       constructor(options) {
         super(options);
+        this.urlGetMatches = 'http://pubdictionaries.org' +
+          '/dictionaries/$filterD/prefix_completion?term=$str';
       }
       getMatchesForString(str, options, cb) {
         super.getMatchesForString(str, options, (err, res) => {
@@ -208,13 +255,7 @@ describe('DictionaryRemoteDemo.js', function() {
               w: e.label.startsWith(str) ? 'S' : 'T',
               z: {
                 dictionary_id: e.dictionary_id,
-                id: e.id,
-                label_length: e.label_length,
-                mode: e.mode,
-                norm1: e.norm1,
-                norm2: e.norm2,
-                created_at: e.created_at,
-                updated_at: e.updated_at
+                id: e.id
               }
             })
           );
@@ -223,24 +264,68 @@ describe('DictionaryRemoteDemo.js', function() {
       }
     }
 
-    var dict = new DictionaryPubDictionaries({
-      urlGetMatches: `http://pubdictionaries.org/dictionaries/$filterD/` +
-                     `prefix_completion?term=$str`
-    });
-
     it('returns match-objects for entries that match a string', function(cb) {
-      var str = 'cell bud';
+      // 2.) Set up 'nock' so it replies to the URL that is supposed to be
+      // requested.
+      var str = 'cell b';
       var dictID = 'GO-BP';
+
+      nock('http://pubdictionaries.org')
+        .get(`/dictionaries/${encodeURIComponent(dictID)}` +
+             `/prefix_completion?term=${encodeURIComponent(str)}`)
+        .reply(...R( // This is a copy of data once returned by the real server:
+          {
+            created_at: '2016-10-23T18:19:08Z',
+            dictionary_id: 2,
+            id: 28316,
+            identifier: 'http://purl.obolibrary.org/obo/GO_0007114',
+            label: 'cell budding',
+            label_length: 12,
+            mode: 0,
+            norm1: 'cellbudding',
+            norm2: 'cellbud',
+            updated_at: '2016-10-23T18:19:08Z'
+          },
+          {
+            created_at: '2016-10-23T18:19:50Z',
+            dictionary_id: 2,
+            id: 48701,
+            identifier: 'http://purl.obolibrary.org/obo/GO_0032060',
+            label: 'cell blebbing',
+            label_length: 13,
+            mode: 0,
+            norm1: 'cellblebbing',
+            norm2: 'cellbleb',
+            updated_at: '2016-10-23T18:19:50Z'
+          }
+        ));
+
+      // 3.) Run the actual test.
+      var dict = new DictionaryPubDictionaries();
       dict.getMatchesForString(str, {filter: {d: dictID}}, (err, res) => {
         expect(err).to.equal(null);
-        var x = res.items[0];
-        delete x.z;  // Ignore the z-object for the comparison.
-        x.should.deep.equal({
-          i: 'http://purl.obolibrary.org/obo/GO_0007114',
-          d: dictID,
-          s: 'cell budding',
-          w: 'S'
-        });
+        res.items.should.deep.equal([
+          {
+            i: 'http://purl.obolibrary.org/obo/GO_0007114',
+            d: dictID,
+            s: 'cell budding',
+            w: 'S',
+            z: {
+              dictionary_id: 2,
+              id: 28316,
+            }
+          },
+          {
+            i: 'http://purl.obolibrary.org/obo/GO_0032060',
+            d: dictID,
+            s: 'cell blebbing',
+            w: 'S',
+            z: {
+              dictionary_id: 2,
+              id: 48701,
+            }
+          }
+        ]);
         cb();
       });
     });
