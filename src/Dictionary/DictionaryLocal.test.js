@@ -187,7 +187,7 @@ describe('DictionaryLocal.js', function() {
     before(function(cb) {
       dict = new DictionaryLocal();
       dict.addDictInfos([di2, di3, di4], (err) => {
-        if(err)  return cb(err);
+        if (err)  return cb(err);
         dict.addEntries([e], cb);
       });
     });
@@ -377,7 +377,7 @@ describe('DictionaryLocal.js', function() {
     before(function(cb) {
       dict = new DictionaryLocal();
       dict.addDictInfos([di1, di2, di3, di4], err => {
-        if(err)  return cb(err);
+        if (err)  return cb(err);
         dict.addEntries([e1, e2, e3, e4], cb);
       });
     });
@@ -507,7 +507,7 @@ describe('DictionaryLocal.js', function() {
     before(function(cb) {
       dict = new DictionaryLocal();
       dict.addDictInfos([di1, di2, di3, di4], err => {
-        if(err)  return cb(err);
+        if (err)  return cb(err);
         dict.addEntries([e2, e3, e4], cb);
       });
     });

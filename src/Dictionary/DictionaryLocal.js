@@ -28,7 +28,7 @@ module.exports = class DictionaryLocal extends Dictionary {
 
     if (opt.dictData || opt.refTerms) {
       var errs = this.addDictionaryData(opt.dictData || [], opt.refTerms);
-      if(errs)  throw errs;
+      if (errs)  throw errs;
     }
   }
 

@@ -123,7 +123,7 @@ module.exports = class Dictionary {
     if (m) {
       // De-duplicate, then add.
       var j = arr.findIndex(e => e.i == m.i);
-      if(j >= 0)  m = arr.splice(j, 1)[0];  // We'll use dict's match instead.
+      if (j >= 0)  m = arr.splice(j, 1)[0];  // We'll use dict's match instead.
       arr.unshift(m);  // A number-string match is placed first.
       m.w = 'N';
     }

@@ -61,7 +61,7 @@ function callAsync(f, ...args) {
 */
 function callAsyncForOneOrEach(elems, func, cb) {
   if (!Array.isArray(elems))  makeAsync(func)(elems, makeAsync(cb));
-  else if(!elems.length)  makeAsync(cb)(null, []);
+  else if (!elems.length)  makeAsync(cb)(null, []);
   else  asyncMap(elems, (e, cbf) => makeAsync(func)(e, cbf), cb);
 
   function makeAsync(cb) {
