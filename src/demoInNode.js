@@ -17,7 +17,8 @@ var dict;
 
 function runDemo() {
   console.log('\n=== This is a basic demo of (only) the' +
-    '\n=== `getEntries()` and `getMatchesForString()` functions.');
+    '\n=== `getEntries()` and `getMatchesForString()` functions' +
+    '\n=== of `DictionaryLocal`.');
 
   const demoData = require('./demoData');
   dict = new VsmDictionary.DictionaryLocal(demoData);
