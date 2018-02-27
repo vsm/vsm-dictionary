@@ -53,8 +53,7 @@ describe('helpers/arrayQuery.js', function() {
       arrayQuery(arr, filter , sort).should.deep.equal([2, 4, 6, 1, 3, 5]);
       arrayQuery(arr, filter2, sort).should.deep.equal([4, 6, 8, 5, 7, 9]);
     });
-    it('applies a filter (1st) and sort function (2nd), ' +
-      'and paginates, page 1', function() {
+    it('applies a filter and sort function, and paginates, page 1', function() {
       arrayQuery(arr, filter , sort, 1, 3).should.deep.equal([2, 4, 6]);
       arrayQuery(arr, filter2, sort, 1, 3).should.deep.equal([4, 6, 8]);
     });

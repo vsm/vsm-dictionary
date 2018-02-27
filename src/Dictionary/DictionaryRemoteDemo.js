@@ -23,50 +23,50 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
     super(opt);
 
     var base = opt.base || 'http://test';
-    var pc = '&p=$page&c=$perPage';
+    var pp = '&page=$page&perPage=$perPage';
 
     this.urlGetDictInfos = opt.urlGetDictInfos ||
-                           base + '/dic?i=$filterI&n=$filterN&s=$sort' + pc;
+            base + '/dic?id=$filterID&name=$filterName&sort=$sort' + pp;
     this.urlGetEntries   = opt.urlGetEntries   ||
-                           base + '/ent?i=$filterI&d=$filterD&z=$z&s=$sort'+ pc;
+            base + '/ent?id=$filterID&dictID=$filterDictID&z=$z&sort=$sort'+ pp;
     this.urlGetRefTerms  = opt.urlGetRefTerms  ||
-                           base + '/ref?f=$filterS' + pc;
+            base + '/ref?str=$filterStr' + pp;
     this.urlGetMatches   = opt.urlGetMatches   ||
-                           base + '/mat?s=$str&d=$filterD&s=$sortD' + pc;
+            base + '/mat?q=$str&dictID=$filterDictID&sort=$sortD' + pp;
   }
 
 
   getDictInfos(options, cb) {
     var o = this._prepGetOptions(options, ['id', 'name']);
     var url = this.urlGetDictInfos
-      .replace('$filterI', o.filter.id  .join(','))
-      .replace('$filterN', o.filter.name.join(','))
-      .replace('$sort'   , o.sort)  // = 'id' or 'name'.
-      .replace('$page'   , o.page)
-      .replace('$perPage', o.perPage);
+      .replace('$filterID'  , o.filter.id  .join(','))
+      .replace('$filterName', o.filter.name.join(','))
+      .replace('$sort'      , o.sort)  // = 'id' or 'name'.
+      .replace('$page'      , o.page)
+      .replace('$perPage'   , o.perPage);
     this._request(url, (err, items) => cb(err, {items}));
   }
 
 
   getEntries(options, cb) {
-    var o = this._prepGetOptions(options, ['i', 'd']);
+    var o = this._prepGetOptions(options, ['id', 'dictID']);
     var url = this.urlGetEntries
-      .replace('$filterI', o.filter.i.join(','))
-      .replace('$filterD', o.filter.d.join(','))
-      .replace('$z'      , o.z       .join(','))
-      .replace('$sort'   , o.sort)  // = 'd', 'i', or 's'.
-      .replace('$page'   , o.page)
-      .replace('$perPage', o.perPage);
+      .replace('$filterID'    , o.filter.id.join(','))
+      .replace('$filterDictID', o.filter.dictID.join(','))
+      .replace('$z'           , o.z       .join(','))
+      .replace('$sort'        , o.sort)  // = 'dictID', 'id', or 'str'.
+      .replace('$page'        , o.page)
+      .replace('$perPage'     , o.perPage);
     this._request(url, (err, items) => cb(err, {items}));
   }
 
 
   getRefTerms(options, cb) {
-    var o = this._prepGetOptions(options, ['s']);
+    var o = this._prepGetOptions(options, ['str']);
     var url = this.urlGetRefTerms
-      .replace('$filterS', o.filter.s.join(','))
-      .replace('$page'   , o.page)
-      .replace('$perPage', o.perPage);
+      .replace('$filterStr', o.filter.str.join(','))
+      .replace('$page'     , o.page)
+      .replace('$perPage'  , o.perPage);
     this._request(url, (err, items) => cb(err, {items}));
   }
 
@@ -74,14 +74,14 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
   getMatchesForString(str, options, cb) {
     if (!str)  return cb(null, {items: []});
 
-    var o = this._prepGetOptions(options, ['d'], ['d']);
+    var o = this._prepGetOptions(options, ['dictID'], ['dictID']);
     var url = this.urlGetMatches
-      .replace('$str'    , encodeURIComponent(str))
-      .replace('$filterD', o.filter.d.join(','))
-      .replace('$sortD'  , o.sort  .d.join(','))
-      .replace('$z'      , o.z       .join(','))
-      .replace('$page'   , o.page)
-      .replace('$perPage', o.perPage);
+      .replace('$str'         , encodeURIComponent(str))
+      .replace('$filterDictID', o.filter.dictID.join(','))
+      .replace('$sortD'       , o.sort  .dictID.join(','))
+      .replace('$z'           , o.z       .join(','))
+      .replace('$page'        , o.page)
+      .replace('$perPage'     , o.perPage);
 
     this._request(url, (err, arr) => {
       if (err)  return cb(err);
@@ -93,7 +93,7 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
   }
 
 
-  // Returns an `options` obj. in standard form like: `{filter: {d:[],..}, ..}`.
+  // Returns an `options` obj. in standard form like: `{filter: {dictID:[],..}, ..}`.
   _prepGetOptions(options, filterKeys = [], sortKeys) {
     var o = prepGetOptions(options, filterKeys, sortKeys);
     var enc = encodeURIComponent;
@@ -102,7 +102,7 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
       o.filter[k] = (o.filter[k] || []).map(s => enc(s));
     });
 
-    if (sortKeys) { // If a `sortKeys` is given, `o.sort` is an array, else str.
+    if (sortKeys) { // If a `sortKeys` is given, `o.sort` is an Array, else Str.
       sortKeys = sortKeys.forEach(k => {
         o.sort[k] = (o.sort[k] || []).map(s => enc(s));
       });

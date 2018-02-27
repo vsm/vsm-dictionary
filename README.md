@@ -65,33 +65,17 @@ as program code and can form a basis for testing future subclasses.
 
 <br>
 
-### Installation:
-
-#### For Node.js (or Webpack):
+### Installation (for Node.js, or with Webpack):
 
 ```
 npm install vsm-dictionary
 ```
 
-#### For the browser:  
-
-Get the latest `vsm-dictionary-{versionNumber}.min.js` (under `dist/`),
-place it on your server, and include an HTML-&lt;head&gt; tag like:
-
-```
-<script src="vsm-dictionary-{versionNumber}.min.js"></script>
-```
-
-* To support old Internet Explorer too, first add a polyfill like this:
-  ```
-  <script> if(/MSIE \d|Trident.*rv:/.test(navigator.userAgent))  document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/6.26.0/polyfill.min.js"><\/script>'); </script>
-  ```
-
 <br>
 
 ### Importing
 
-To import just `DictionaryLocal` with Node.js:
+To import only `DictionaryLocal` with Node.js:
 
 ```
 const DictionaryLocal = require('vsm-dictionary').DictionaryLocal;
@@ -103,12 +87,6 @@ or in an ES6 / Webpack+Babel project:
 import { DictionaryLocal } from 'vsm-dictionary';
 ```
 
-or in the browser: it is already available as a property on a global variable:
-
-```
-VsmDictionary.DictionaryLocal;
-```
-
 <br>
 
 ### Example use
@@ -117,15 +95,15 @@ Example of (only) **string-search**, using the included `DictionaryLocal`
 subclass:
 
 ```
-const VsmDictionary = require('./dist/vsm-dictionary.js');
+const VsmDictionary = require('./vsm-dictionary.js');
 
 // Create.
 var dict = new VsmDictionary.DictionaryLocal({
   dictData: [
     {id: 'DictID_12',  name: 'Example subdictionary', entries: [
-      {i: 'URI:001', t: ['aaa', 'syn']},
-      {i: 'URI:002', t: 'aab'},
-      {i: 'URI:003', t: 'abc', 'x': 'descr'}
+      {id: 'URI:001', terms: ['aaa', 'syn']},
+      {id: 'URI:002', terms: 'aab'},
+      {id: 'URI:003', terms: 'abc', descr: 'description'}
     ]},
   ],
 });
@@ -139,17 +117,17 @@ dict.getMatchesForString('ab', {}, function (err, res) {
 gives the output:
 
 ```
-[ { i: 'URI:003',         // Concept-ID.
-    d: 'DictID_12',       // Dictionary-ID.
-    x: 'descr',           // Explanation of the meaning of concept `URI:003`.
-    t: [ { s: 'abc' } ],  // Term-objects: one term as an unstyled string.
-    s: 'abc',             // The term-string that this match pertains to.
-    w: 'S' },             // Match type. Prefix(S)-matches come before infix(T).
-  { i: 'URI:002',
-    d: 'DictID_12',
-    t: [ { s: 'aab' } ],
-    s: 'aab',
-    w: 'T' } ]
+[ { id: 'URI:003',         // Concept-ID.
+    dictID: 'DictID_12',   // Dictionary-ID.
+    descr: 'description',  // Explanation of the meaning of concept `URI:003`.
+    terms: [ { str: 'abc' } ],  // Term-objects: one term as an unstyled string.
+    str: 'abc',            // The term-string that this match pertains to.
+    type: 'S' },           // Match type. Prefix(S)-matches come before infix(T).
+  { id: 'URI:002',
+    dictID: 'DictID_12',
+    terms: [ { str: 'aab' } ],
+    str: 'aab',
+    type: 'T' } ]
 ```
 
 Or, just to show how to add data, like it is specified for a `Dictionary`
@@ -157,14 +135,14 @@ subclass in general (so, instead using of `DictionaryLocal`'s convenient way
 of giving it to the constructor):
 
 ```
-const VsmDictionary = require('./dist/vsm-dictionary.js');
+const VsmDictionary = require('./vsm-dictionary.js');
 
 var dict = new VsmDictionary.DictionaryLocal();
 var dictInfo = {id: 'DictID_12', name: 'Example subdictionary'};
 var entries = [
-  {i: 'URI:001', d: 'DictID_12', t: ['aaa', 'syn']},
-  {i: 'URI:002', d: 'DictID_12', t: 'aab'},
-  {i: 'URI:003', d: 'DictID_12', t: 'abc', 'x': 'descr'}
+  {id: 'URI:001', dictID: 'DictID_12', terms: ['aaa', 'syn']},
+  {id: 'URI:002', dictID: 'DictID_12', terms: 'aab'},
+  {id: 'URI:003', dictID: 'DictID_12', terms: 'abc', descr: 'description'}
 ];
 
 dict.addDictInfos(dictInfo, (err) => {
@@ -186,31 +164,18 @@ and [demoInBrowser.js](src/demoInBrowser.js) (see also below).
 
 ### Tests
 
-Run `npm test` (or equally: `npm run dev:test`).  
-This runs test in the browser, and reruns when any file is changed.  
-Tests in the browser are combined with an interactive demo.  
-
-Or run `npm run build:test` and then `node dist/demoinNode.js`
-for a single test run under Node.js.
+Run `npm test`. This runs tests with Mocha.  
+Run `npm run testw` to watch and reruns when any file is changed.  
 
 <br>
 
 ### Demo
 
-Run `npm run dev` (or `npm run dev:test`) to start a demo in the browser.
+Run `npm run demo` to start a Webpack'ed demo in the browser.
 
 The top component will show an input-field for interactive string-match
 lookup based on a `DictionaryLocal`, using sample data from `src/demoData.js`.   
 The second input-field does this based on (only) a single dictionary
 from PubDictionaries.org, based on `DictionaryRemoteDemo`.
 
-Or run `npm run build` (only needed if `dist/` is still empty)
-and then `node dist/demoinNode.js` for more limited demo output under Node.js.
-
-<br>
-
-### Build
-
-Run `npm run build` to make Webpack compile the code into a minified bundle
-that can be loaded in the browser, or that can be `require()`ed
-in a Node.js-based project.
+Or run `node src/demoinNode.js` for a more limited demo, under Node.js only.

@@ -40,7 +40,7 @@ provides some extra functionality and augments some parent function definitions.
   The entry's associated subdictionary-dictInfo's `f_id()` will convert it to a
   String which is unique within DictionaryLocal.
   + Note: this does not apply to `updateEntries()`, because the required dictID
-    reference (`entryLike.d`), for converting the ID, may be absent there.
+    reference (`entryLike.dictID`), for converting the ID, may be absent there.
 
 + When adding a subdictionary's `dictInfo` (via `addInfoForSubdictionaries()`)
   one can give it a custom `f_id()`. Or else a default function is used, to
@@ -57,11 +57,11 @@ provides some extra functionality and augments some parent function definitions.
       - `entries` {Array(Object)}`:
             these are normal (as described in `Dictionary`) or *simplified*
             'entry'-type Objects:
-        + The  `d` (dictID) property may be left away, because then
-          the `id` (dictID) from their encompassing subdictionary-info is used;
-        + The `t` (terms) can be simplified (as in any `Dictionary`) to any of:
+        + The  `dictID` property may be left away, because then
+          the dict-`id` from their encompassing subdictionary-info is used;
+        + The `terms` can be simplified (as in any `Dictionary`) to any of:
           + {String}: a plain term-string;
-          + {Object}: a term-Object, like `{s:, [y:], [x:]}`;
+          + {Object}: a term-Object, like `{str:, [style:], [descr:]}`;
           + {Array(String|Object)}: an array of a mix of the above two.
   + All of this will be converted internally and stored as standard 'dictInfo'
     and 'entry' objects, as they are described in the parent class `Dictionary`.

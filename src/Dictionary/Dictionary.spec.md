@@ -52,64 +52,70 @@ A `Dictionary` provides access to a (local or remote) list of
     + Note:
       + Because functions can not be JSON.stringify()'ed, any Function-type
         property `f_*()` must be passed as String which will be `eval()`'ed.
-        This must be a string like: "function (x) { return x + 1; }".
+        This must be a string like: "function (descr) { return descr + 1; }".
 
 2. An 'entry' represents a *concept* and is an object with properties:
-    - `i`: {String}:
+    - `id`: {String}:
               the concept's unique (among all dictionaries) identifier; for a
               local demo-dictionary this could be anything; for a server-based
               dictionary this would typically be a URI (as in Linked Data);
-    - `d`: {String}:
+              (we also refer to this ID as a 'conceptID', since an entry
+              represents a single concept);
+    - `dictID`: {String}:
               a subdictionary-ID, which refers to a `dictInfo`'s `id`; this
               gives access to the entry's `dictInfo`-specific functionality;
-    - `x`: {String} (optional):
+    - `descr`: {String} (optional):
               an eXplanation/description/definition of the concept;
-    - `t`: {Array(Object)}:
+    - `terms`: {Array(Object)}:
               a non-empty list of the concept's terms, i.e. its synonyms's
               string-representations, each represented by an Object with props:
-        - `s`: {String}:
+        - `str`: {String}:
               the term as a pure string, making it findable via string-search;
-        - `y`: {String|Object} (optional):
-              style-information; this could be a html-repres. of `s`, e.g. with
-              sub/superscript, or an object or code with styling-instructions;
-        - `x`: {String} (optional):
-              if present, this `x` overrides the entry's `x`, enabling us to
-              give a custom descr. of a concept, from one term's perspective;
+        - `style`: {String|Object} (optional):
+              style-information; this could be a html-representation of `str`,
+              e.g. with sub/superscript, or an object, or some code-string with
+              styling-instructions;
+        - `descr`: {String} (optional):
+              if present, this `descr` overrides the entry's `descr`, enabling
+              us to give a custom description of a concept, from a particular
+              term's perspective;
     - `z`: {Object} (optional):
             any extra information, free in form, related to the entry; this
-            could include subdictionary-specific data for `f_aci()` processing.
+            could include subdictionary-specific data for `f_aci()` processing;
+            as `z` is an Object, the extra info must be set on properties of `z`.
 
 3. A 'match' is an object returned by search-string querying functionality.
   It represents one specific term linked to one specific entry. It provides the
   necessary data to build an autocomplete item, which links a term+concept into
   a VSM-term. It has properties:
-    - `i`: {String}:
+    - `id`: {String}:
               concept-ID, i.e. unique identifier of the matched entry, e.g. URI;
-    - `d`: {String}:
+    - `dictID`: {String}:
               subdictionary-ID, giving access to one dictInfo's functionality;
-    - `s`: {String}:
+    - `str`: {String}:
               pure string-repres. of a term that matches the string-query;
-    - `y`: {String|Object} (optional):
+    - `style`: {String|Object} (optional):
               style/d string (as stored in the entry's particular term-object);
-    - `x`: {String} (optional):
+    - `descr`: {String} (optional):
               explanation of the entry, or the overriding explan. for this term;
-    - `w`: {1-char-String}:
+    - `type`: {1-char-String}:
               what type of match it is:
         + 'S' = search-string matches the start of the term, or is fully equal;
         + 'T' = search-string appears somewhere in the term, but not its start;
         + 'F' = it matches a 'fixedTerm' term+concept, as in 'S' (see later);
         + 'G' = it matches a 'fixedTerm' term+concept, as in 'T';
         + 'R' = it is fully equal to a reference term ('refTerm', see below);
-                a refTerm 'match' has empty properties `i` and `d`;
+                a refTerm 'match' has empty properties `id` and `dictID`;
         + 'N' = a generated match that represents a number, + standard-made ID;
-    - `t`: {Array(Object)} (optional):
-              this may contain the entry's full terms-list `t`;
+    - `terms`: {Array(Object)} (optional):
+              this may contain the entry's full terms-list `terms`;
     - `z`: {Object} (optional):
               is the entry's `z` info,  filtered according to the query's
               `options.z` (see `getMatchesForString()`).
     + Note:
-      + Several match-objects can have a same term `s` but linked to a different
-        concept-ID `i`, or a different term `s` but linked to a same concept-ID!
+      + Multiple match-objects can have a same term `str`, which will then be
+        linked to a different conceptID `id`. And multiple match-objects can be
+        linked to the same ID, but will then have a different term-string `str`!
       + When multiple match-objects are returned as a list, they should be
         sorted in the order: N, R, F, G, S, T.
 
@@ -123,7 +129,7 @@ A `Dictionary` provides access to a (local or remote) list of
 &nbsp;  
 SUBCLASS 'GET'-TYPE FUNCTIONALITY
 ---------------------------------
-Dictionary is a parent class for subclasses that do most of the work.
+Dictionary is a parent class for subclasses that will do most of the work.
 A subclass module represents a specific data-repository, and translates requests
 and responses with the datastore through a common interface, which e.g.
 a vsm-autocomplete can use.
@@ -145,9 +151,9 @@ Subclasses must implement the following functions:
             one or more dict-names; returns for all names, combined in OR-mode;
         + When no `filter` is given (default), returns all dictInfo objects;
     - `sort`: {String}: one of:
-        + "id" (default, so also without giving an `options.sort`):
+        + 'id' (default, so also without giving an `options.sort`):
             returned items are sorted by their dictID `id`;
-        + "name": sorts by `name`;
+        + 'name': sorts by `name`;
     - `page` {int}:
         because too many items could match, the results will be paginated;
         this field tells which 'page' of results is requested by this call;
@@ -169,16 +175,17 @@ Subclasses must implement the following functions:
   Gets the `entry`-objects specified in `options`:
   - `options`: {0|Object}: if object, supports these all-optional properties:
     - `filter`: {Object}: filter-options; properties are combined in AND-mode:
-        - `i`: {String|Array(String)} (opt.):
+        - `id`: {String|Array(String)} (opt.):
             one or more conceptIDs; returns for all ids, combined in OR-mode;
-        - `d`: {String|Array(String)} (opt.):
+        - `dictID`: {String|Array(String)} (opt.):
             one or more dictIDs; returns for all dictIDs, combined in OR-mode;
         + When no `filter` is given (default), returns all entry objects;
     - `sort`: {String}: one of:
-        + "d" (default, so also without giving an `options.sort`):
-            returned items are sorted by their dictID `d`, then conceptID `i`;
-        + "i": sorts by conceptID `i` only;
-        + "s": sorts entries by their first term-string `t[0].s`, then `d`, `i`;
+        + 'dictID' (default, so also without giving an `options.sort`):
+            returned items are sorted by their `dictID`, then conceptID id`;
+        + 'id': sorts by conceptID `id` only;
+        + 'str': sorts entries by their first term-string `terms[0].str`, then
+            by `dictID`, and then by `id`;
     - `z`: {true|false|String|Array(String)}:
         instructs to return a z-object with all, none (no `z`-prop then), or
         the given selection of the entries' z-properties, respectively;
@@ -190,8 +197,8 @@ Subclasses must implement the following functions:
   - `cb`: {Function}: callback with arguments:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
-      - `items`: {Array(Object)}: a list of "entry"-objects, as described above,
-            i.e. like `{i, d, x, t[{s,y,x},..], z}`.
+      - `items`: {Array(Object)}: a list of 'entry'-objects, as described above,
+            i.e. like `{id, dictID, descr, terms[{str,style,descr},..], z}`.
   + Note: this function is necessary for term/concept-search functionality that
     would be more powerful/configurable than just autocomplete, and also for
     'fixedTerms'-preloading (see later).
@@ -200,13 +207,13 @@ Subclasses must implement the following functions:
   Returns all `refTerm` strings, sorted alphabetically.
   - `options`: {0|Object}: if object, supports these all-optional properties:
     - `filter`: {Object}: filter-options; properties are combined in AND-mode:
-        - `s`: {String|Array(String)} (opt.):
+        - `str`: {String|Array(String)} (opt.):
             one or more refTerm-strings; returns for all, combined in OR-mode;
         + When no `filter` is given (default), returns all refTerm-strings;
     - `page` {int}:
         which page of the paginated result is requested (starting from 1);
     - `perPage` {int}:
-        how many items are should be returned by one call.
+        how many items should be returned by one call.
   - `cb`: {Function}: callback with arguments:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
@@ -217,11 +224,11 @@ Subclasses must implement the following functions:
   - `str`: the search-string.
   - `options`: {0|Object}: if object, supports these all-optional properties:
     - `filter`: {Object}: filter-options:
-        - `d`: {String|Array(String)} (opt.):
+        - `dictID`: {String|Array(String)} (opt.):
             one/more dictIDs; returns only for these, combined in OR-mode;
-        + when no `filter.d` is given (default), returns for all sub-dicts;
+        + when no `filter.dictID` is given (default), returns for all sub-dicts;
     - `sort`: {Object}:
-        - `d`: {String|Array(String)} (opt.):
+        - `dictID`: {String|Array(String)} (opt.):
             sorts matches whose dictID is in this list, first; then sorts as
             usual ('S' before 'T', then case-insensitively by term-string, then
             by own dictID); see notes below for details on sorting;
@@ -231,22 +238,24 @@ Subclasses must implement the following functions:
     - `page` {int}:
         which page of the paginated result is requested (starting from 1);
     - `perPage` {int}:
-        how many items are should be returned by one call.
+        how many items should be returned by one call.
   - `cb`: {Function}: callback with arguments:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
-      - `items`: {Array(Object)}: a list of "match"-objects, as described above,
-            i.e. like `{i, d, s, y, x, w, t[{s,y,x},..], z}`.
+      - `items`: {Array(Object)}: a list of 'match'-objects, as described above,
+            i.e. like
+            `{id, dictID, str, style, descr, type, terms[{str,style,descr},..], z}`.
   + Notes:
     + Returned matches are filtered:
-      only those belonging to any of the subdictionaries given in `filter.d`
+      only those belonging to any of the subdictionaries given in `filter.dictID`
       (if any given), will be returned.
     + Returned matches are sorted by the following keys, in this order:
-      + if a `sort.d` is given, then matches that belong any of the subdicts
-        given in `sort.d` are grouped and sorted before matches that don't;
-        + Note: the order of dictIDs within `sort.d` is not important; `sort.d`
-          only splits matches into 2 blocks: with dictID in the list vs without;  
-      + then: within each of those one or two groups, first matches with `w`
+      + if a `sort.dictID` is given, then matches that belong to any of the
+        subdicts given in it, are grouped and sorted before matches that don't;
+        + Note: the order of dictIDs within `sort.dictID` is not important;
+          `sort.dictID` only splits matches into 2 blocks: those with a dictID
+          in the list vs those without;
+      + then: within each of those one or two groups, first matches with `type`
         being 'R', then 'S', then 'T', (i.e. first a possible refTerm match,
         then prefix matches, then infix matches);
         + Note: while R/S/T-type match-sorting is the responsibility of
@@ -260,17 +269,17 @@ Subclasses must implement the following functions:
             first-terms before those that are not the 1st term for their entry);
           + then by conceptID;
       + ..or:
-        + sort it by some measure of relevance, e.g. how often the term is used
+        + sorted by some measure of relevance, e.g. how often the term is used
           in general, or based on some context (would be future implementation).
     + So:
-      + `options = {filter: d:['AB']}` returns *only* matches in subdict. 'AB'.
-      + `options = {sort: d:['AB']}` *prioritizes* matches from subdict. 'AB' in
-          the returned list. Non-AB-matches may still appear after AB-matches.
+      + `options = {filter: dictID:['D']}` returns *only* matches in subdict 'D'.
+      + `options = {sort: dictID:['D']}` *prioritizes* matches from subdict 'D'
+          in the returned list. Non-D-matches may still appear after D-matches.
     + This function should call `super.addExtraMatchesForString()` that can find
       and mix in any N/F/G-type matches, with this function's S/T-type matches.
     + A maximum of `perPage` S/T-type matches is returned. But in addition,
-      for a first result-page only, an R-type match, and any parent-class
-      (first-page only) matches may be added.
+      for a first result-page only, an R-type match, and any parent-class-made
+      matches may be added.
     + Idea: (filtering matches based on the entries's `z`-object properties
       could be a future implementation).
 
@@ -306,8 +315,8 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
 + `loadFixedTerms(idts, options, cb)`:  
   Preloads match-objects for fixedTerms and stores them in a cache.  
     - `idts`: {String|Object|Array(String|Object)}:  
-        one/more fixedTerms, represented by a conceptID + optional term:
-        this can have the form: `'id'`, or `{i: 'id', s: 'term'}`, or
+        one/more fixedTerms, represented by a conceptID + optional term ('id+t'):
+        this can have the form: `'id'`, or `{id: 'id', str: 'term'}`, or
         they can be an array of a mix of these two.
     - `options`: {0|Object}:  
         `loadFixedTerms()` will use the subclass's `getEntries()` to query
@@ -316,17 +325,18 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
         passed along to that `getEntries()` call;
         it can be used to configure z-object-pruning via `options.z`.  
     + For any `idts`-item for which the `getEntries()` call returned an entry:
-      + a match-object is created based on that entry and the following term-obj
-        (i.e. the match-obj gets this term-obj's fields `s`, `y`, `x`):
-        + if the `idts`-item has a term-string `.s` that is also present in
-          the returned entry's terms-list `.t`, then we use that one's term-obj;
-        + if this string is not in `.t`, or if no `.s` was given, then we just
-          use the first term-object of the entry's terms-list `.t`;
+      + a match-object is created based on that entry, on and the following
+        term-object (meaning: match-obj gets the entry's fields, plus the
+        following term-object fields `str`, `style`, `descr`):
+        + if the `idts`-item has a term-string `str` that is also present in
+          the returned entry's `terms` list, then we use that one's term-object;
+        + if that string is not in `terms`, or if no `str` was given, then we
+          just use the first term-object of the entry's `terms` list;
       + the match-object is added to the cache `Dictionary.fixedTermsCache`,
         accessible via a lookup key, which is calculated by concatenating the
         conceptID, a newline, and (if present) the `idts`-item's term-string.
     + For any `idts`-item for which no entry was returned (so there was no entry
-      with that id `i`), no item is added to the cache.
+      with that `id`), no item is added to the cache.
     - `cb`: {Function}: callback with argument:
       - `err`: {null|String|Object}:  
         an error will be generated if some maximum number of requested items was
@@ -369,14 +379,14 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
         + It adds F/G-type matches into the given `array`, between the one
           possible R-type match, and the many possible S/T-type matches;
           this results in the order: R-F-G-S-T.
-        + If a fixedTerm-match is a duplicate of normal match (on page 1), the
-          normal match will be removed.
+        + If a fixedTerm-match is a duplicate of normal match (on page 1), then
+          the normal match will be removed.
       + + Matches are only searched and added for the first page of possibly
           paginated results.
         + An `options.perPage` will be ignored. So the extra-added matches may
           cause that the subclass's `getMatchesForString()` ends up returning
-          more than `perPage` matches, only for the first page.  (But still a
-          maximum `perPage` S/T-type matches).
+          more than `perPage` matches, only for the first page. (But still only
+          a maximum of `perPage` S/T-type matches).
       + Even though this function currently uses only synchronous operations,
         its interface is asynchronous (i.e. with a `cb()`).  
         This is to prepare for future extra code that may use some async lookup,
@@ -407,7 +417,7 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
   and passing that to the `Dictionary` constructor.
     `Dictionary.numberMatchConfig` {false|Object}:  
         - `dictID`: {String}:
-            is used as dictID `d` in a generated match-object;
+            is used as `dictID` in a generated match-object;
         - `conceptIDPrefix`: {String}:
             is used as prefix to a conceptID's standardizing exponential form.
         + If the object is `false`, then the addition of any number-string
@@ -423,7 +433,7 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
     subclass (so, if that number was already stored as a concept in the
     dictionary), then the normal match is used instead of the generated one
     (as it may be more informative than the generated one), and it is moved
-    to the top of the matches-list, and it gets its `w` set to `'N'`.
+    to the top of the matches-list, and it gets its `type` set to `'N'`.
 
 
 &nbsp;  
@@ -440,16 +450,16 @@ Here is just a selection of functionality, delegated to small extra modules:
   by accepting 'entry'-type objects that:
   - may have unsupported properties (also in any of their terms-objects); these
     will be pruned away;
-  - may have a simplified terms-list `t`: which is in its canonical form
+  - may have a simplified terms-list `terms`: which is in its canonical form
     an {Array(Object)}, but can be accepted as being any of:
     + {String}: one plain term-string;
-    + {Object}: one term-Object, like `{s:, y:, x:}`;
+    + {Object}: one term-Object, like `{str:, style:, descr:}`;
     + {Array(String|Object)}: an array of a mix of the above two;
   - may have a term-list that has term-objects with a same term-string; then the
     one further in the list will be put in the original one's place in the list.
   + It is still up to the particular implementation (a Dictionary subclass) for
     how to store this, as long as `getEntries()` returns them in the canonical
-    way, like `{i:, d:, x:, t: [{s:, y:, x:}, ...], z:}`.
+    way, like `{id:, dictID:, descr:, terms: [{str:, style:, descr:}, ...], z:}`.
 
 
 &nbsp;  
@@ -482,9 +492,9 @@ Subclasses could implement the following functions, if the underlying storage
   Only valid properties for an entry should make it to storage.
     - `entry`: {Object} or {Array(Object)};
     - `cb(err)`: {Function}.
-      + An error occurs for an entry, if an entry with id `i` already exists.
-      + An error occurs for an entry, if no dictInfo for its `d` exists yet.
-    + Note: any entry's term-list `t` may be given in a simplified way, etc, as
+      + An error occurs for an entry, if an entry for `id` already exists.
+      + An error occurs for an entry, if no dictInfo for its `dictID` exists yet.
+    + Note: any entry's term-list `terms` may be given in a simplified way, as
       described earlier, whereby `canonicalizeEntry()` can make it standardized.
 
 3. `addRefTerms(refTerms, cb)`:
@@ -509,7 +519,7 @@ Subclasses could implement these functions, if the underlying storage allows:
               an error is added for any 'dictInfo' for which no `id` exists.
       - `result`: {null|Object|Array(null|Object)}:
               one or a list of updated 'dictInfo'-objects (also if unchanged),
-              and `null` for those whose id `id` was not found.
+              and `null` for those whose `id` was not found.
     + Note that a dictInfo's dictID `id` can not be changed.
       For that to happen, one must delete it and add one with the new dictID.
 
@@ -517,41 +527,43 @@ Subclasses could implement these functions, if the underlying storage allows:
   Updates one/more 'entry'-type objects in the storage.
     - `entryLikes`: {Object} or {Array(Object)};
       + These are basically 'entry'-type objects, which will be used to update
-        the corresponding entry in storage, i.e. the one with same id `i`.
-      + Their `d` and `x` properties will replace the ones in the entry,
+        the corresponding entry in storage, i.e. the one with same `id`.
+      + Their `dictID` and `descr` properties will replace the ones in the entry,
         or be added if not present.
-      + But their terms-array `t` and extra-info object `z` have a deeper
+      + But their terms-array `terms` and extra-info object `z` have a deeper
         structure. So because of race conditions, it is *not* supported to let
-        an entryLike's `t` or `z` completely replace those of the entry.  
-      + Instead, `t` and `z` will only be used for *adding or replacing t-items*
-        *or z-properties*, and `tdel` and `zdel` can be used to delete these.
+        an entryLike's `terms` or `z` completely replace those of the entry.  
+      + Instead, `terms` and `z` will only be used
+        for *adding or replacing terms-items or z-properties*,
+        and `termsDel` and `zDel` can be used to delete these.
       + So:
-        - `t` {String|Object|Array(String|Object)}:
-              each item in an entryLike's `t` array replaces the term-object in
-              the entry's `t` array that has the same term-string `s`; or it is
-              added to the array if there is no such term-object yet;
-          + `t` may be given in the simplified format as in `addEntries()`,
-              so `t` should get pre-processed by `canonicalizeTerms()`;
+        - `terms` {String|Object|Array(String|Object)}:
+              each item in an entryLike's `terms` array replaces the term-object
+              in the entry's `terms` array that has the same term-string `s`;
+              or it is added to the array if there is no such term-object yet;
+          + `terms` may be given in the simplified format as in `addEntries()`,
+              so `terms` should get pre-processed by `canonicalizeTerms()`;
         -  `z` {Object}:
               each property of an entryLike's `z` object replaces the same-named
-              one in the entry's `z` object, or gets added if no such prop yet;
-        - `tdel` {String|Array(String)}:
-              deletes terms in `t`, based on given term-strings `s`; no error if
-              nonexistent; but error if trying to delete an entry's last
-              term-object (and this cancels all of entryLike's other changes);
-        - `zdel` {true|String|Array(String)}:
+              one in the entry's `z` object, or gets added if no such property
+              exists yet;
+        - `termsDel` {String|Array(String)}:
+              deletes terms in `terms`, based on the given term-strings `str`;
+              no error if nonexistent; but error if trying to delete an entry's
+              last term-obj (and this cancels all of entryLike's other changes);
+        - `zDel` {true|String|Array(String)}:
               deletes one or more properties from the entry's `z`-object; if
               `true` then deletes `z` entirely; no error for non-existent props.
       + Deletions happen before additions. So to install a brand new `z` object,
-        use `zdel: true`, together with the new `z`, i.e. use an `entryLike`
-        like: `{ zdel: true,  z: {...} }`.
+        use `zDel: true`, together with the new `z`, i.e. use an `entryLike`
+        like: `{ zDel: true,  z: {...} }`.
     - `cb(err, result)`: {Function}.
       - `err`:
-              an error is added for any entryLike for which no id `i` exists;
+              an error is added for any entryLike for which no `id` exists;
       - `result`: {null|Object|Array(null|Object)}:
               one or a list of updated 'entry'-objects (whether changed or not),
-              and `null` for those whose id `i` was not found.
-    + Note that an entry's conceptID `i` can not be changed.
+              and `null` for those whose `id` was not found.
+    + Note that an entry's `id` can not be changed.
 
 
 3. There is no `updateRefTerm()` function, because refTerms are not changeable

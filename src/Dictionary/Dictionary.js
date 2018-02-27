@@ -27,45 +27,46 @@ module.exports = class Dictionary {
 
   // Fetches and stores (pre-loads) match-objects for a number of fixedTerms.
   // - The fixedTerms are represented by `idts`, which stands for (a list of):
-  //   "ID plus optional term-string"s. So each 'idts' item uniquely identifies
+  //   "ID plus optional Term-string"s. So each 'idts' item uniquely identifies
   //   a fixedTerm.
   // - For each fixedTerm, `loadFixedTerms()` uses `getEntries()` (implemented
   //   by some subclass) to get full information about the entry it represents,
-  //   and already builds a match-object for them.
-  // - Each of these match-objects is stored in `this.fixedTermsCache`,
-  //   and is accessible by a lookup key, which is calculated from the
-  //   ID+optional-term-string.
+  //   and builds a match-object for them.
+  // - Each of these match-objects is stored in `this.fixedTermsCache`, based on
+  //   on a lookup key, which is calculated from the ID+optional-term-string.
   // - Later, when a call is made to `_getFixedMatchesForString()`, with as
   //   `options.idts` a subset of the `idts` preloaded here, that function will
   //   be able to get the relevant match-objects from the cache, without having
-  //   to launch extra query on the data storage.
+  //   to launch an extra query on the data storage.
   // Always calls `cb` on the next event-loop, as long as getEntries() does too.
   loadFixedTerms(idts, options, cb) {
     idts = this._prepIdts(idts);
 
-    // Prevent unfiltered query; (`opt.filter.i=[]` would request all entries).
+    // Prevent unfiltered query; (`opt.filter.id=[]` would request all entries).
     // Also. call back on next event-loop, as `getEntries()` can't do that now.
     if (!idts.length)  return callAsync(cb, null);
 
     var opt = options ? deepClone(options) : {};
     if (!opt.filter)  opt.filter = {};
-    opt.filter.i = idts.map(x => x.i);  // Query `getEntries()` for idts's IDs.
-    opt.page     = 1;
-    opt.perPage  = idts.length;  // Ensure the response isn't paginated.
+    opt.filter.id = idts.map(x => x.id); // Query `getEntries()` for idts's IDs.
+    opt.page      = 1;
+    opt.perPage   = idts.length;  // Ensure the response isn't paginated.
 
     this.getEntries(opt, (err, res) => {
       if (err)  return cb(err);
 
       // For each given id(+str), find the matching entry in the returned `res`.
-      idts.forEach(x => {
-        var e = res.items.find(e => e.i == x.i);
-        if (!e)  return;  // Don't add a key+value if no entry was found for it.
+      idts.forEach(idt => {
+        var entry = res.items.find(e => e.id == idt.id);
+        if (!entry)  return;  // Abort if no entry was found for this idts's ID.
 
-        var p = e.t.findIndex(t => t.s == x.s);  // Find term-string's position.
-        if (p == -1)  p = 0; // Use term 1 if entry doesn't have the given term.
+        // Find the position of this idts's term-string, among the entry's terms,
+        // or just use term 1 if the entry doesn't have that given term.
+        var pos = entry.terms.findIndex(term => term.str == idt.str);
+        if (pos == -1)  pos = 0;
 
-        var k = this._idtToFTCacheKey(x.i, x.s || '');
-        this.fixedTermsCache[k] = this._entryToMatch(e, p, 'F');
+        var k = this._idtToFTCacheKey(idt.id, idt.str || '');
+        this.fixedTermsCache[k] = this._entryToMatch(entry, pos, 'F');
       });
 
       cb(null);
@@ -73,10 +74,10 @@ module.exports = class Dictionary {
   }
 
 
-  // Brings a conceptID-and-optional-termStrings array into canonical form,
-  // e.g. `['id', {i:'id2', s:..}, ...]` --> `[{i:'id'}, {i:'id2', s:..}, ...]`.
+  // Brings a conceptID-and-optional-termStrings array into canonical form, e.g.
+  // `['id', {id:'id2', str:..}, ..]` --> `[{id:'id'}, {id:'id2', str:..}, ..]`.
   _prepIdts(idts) {
-    return asArray(idts).map(x => !x.i ? {i: x} : x);
+    return asArray(idts).map(x => !x.id ? {id: x} : x);
   }
 
 
@@ -89,7 +90,7 @@ module.exports = class Dictionary {
 
   // Builds a match-object, based on an entry and one of its terms.
   _entryToMatch(entry, termPos, matchType) {
-    return Object.assign({}, entry, entry.t[termPos], {w: matchType});
+    return Object.assign({}, entry, entry.terms[termPos], {type: matchType});
   }
 
 
@@ -107,25 +108,27 @@ module.exports = class Dictionary {
 
     if (res.length) {
       // Merge after one possible 'R'-type match, and before all others.
-      var m = (arr[0]  &&  arr[0].w == 'R') ? arr.shift() : false;
+      var match = (arr[0]  &&  arr[0].type == 'R') ? arr.shift() : false;
       arr = res.concat(arr);
-      if (m)  arr.unshift(m);
+      if (match)  arr.unshift(match);
 
       // De-duplicate.
       arr = arr.reduce((a, m1, i1) => {
-        var i2 = arr.findIndex(m2 => m1.i == m2.i  &&  m1.s == m2.s);
-        if (i1 == i2) a.push(m1);
+        var i2 = arr.findIndex(m2 => m1.id == m2.id  &&  m1.str == m2.str);
+        if (i1 == i2)  a.push(m1);
         return a;
       }, []);
     }
 
-    var m = this._getNumberMatchForString(str);
-    if (m) {
-      // De-duplicate, then add.
-      var j = arr.findIndex(e => e.i == m.i);
-      if (j >= 0)  m = arr.splice(j, 1)[0];  // We'll use dict's match instead.
-      arr.unshift(m);  // A number-string match is placed first.
-      m.w = 'N';
+    var match = this._getNumberMatchForString(str);
+    if (match) {
+      // De-duplicate, then add.  I.e., if the number-match was already among
+      // the normal matches, then move that normal match to the top. Because the
+      // match from a dictionary may have more info than a generated nr-match.
+      var j = arr.findIndex(m2 => m2.id == match.id);
+      if (j >= 0)  match = arr.splice(j, 1)[0];
+      arr.unshift(match);
+      match.type = 'N';
     }
     callAsync(cb, null, arr);
   }
@@ -146,20 +149,21 @@ module.exports = class Dictionary {
     // `fixedTermsCache`, and then filter out those that didn't have a match.
     // But we can combine these two operations with a single `.reduce()`.
     arr = idts
-      .reduce((arr, x) => {
-        var k = this._idtToFTCacheKey(x.i, x.s || '');
-        var match = this.fixedTermsCache[k];
+      .reduce((arr, idt) => {
+        var key = this._idtToFTCacheKey(idt.id, idt.str || '');
+        var match = this.fixedTermsCache[key];
         if (!match)  return arr;  // Drop id+strs without match in the cache.
 
-        var w = match.s.toLowerCase().startsWith(str) ? 'F' :
-                match.s.toLowerCase().includes  (str) ? 'G' : 0;
+        var type = match.str.toLowerCase().startsWith(str) ? 'F' :
+                   match.str.toLowerCase().includes  (str) ? 'G' : 0;
 
-        if (w)  arr.push( Object.assign( deepClone(match), {w} ) );
+        if (type)  arr.push( Object.assign( deepClone(match), {type} ) );
         return arr;
       }, arr);
 
     arr = arr.sort((a, b) =>
-      strcmp(a.w, b.w) || strcmp(a.s, b.s) || strcmp(a.d, b.d) || a.i - b.i
+      strcmp(a.type, b.type) || strcmp(a.str, b.str) ||
+      strcmp(a.dictID, b.dictID) || a.id - b.id
     );
 
     return zPropPrune(arr, options.z);
@@ -175,11 +179,11 @@ module.exports = class Dictionary {
     if (id === false)  return false;
 
     return {
-      i: this.numberMatchConfig.conceptIDPrefix + id,
-      d: this.numberMatchConfig.dictID,
-      s: str,
-      x: '[number]',
-      w: 'N'
+      id:     this.numberMatchConfig.conceptIDPrefix + id,
+      dictID: this.numberMatchConfig.dictID,
+      str:    str,
+      descr:  '[number]',
+      type:   'N'
     };
   }
 

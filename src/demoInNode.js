@@ -29,7 +29,7 @@ function runDemo() {
 
 function demo1() {
   console.log('\n--- DictionaryLocal entries sample:');
-  dict.getEntries({ filter: { d: 'BIO' } },  function(err, res) {
+  dict.getEntries({ filter: { dictID: 'BIO' } },  function(err, res) {
     console.dir(res.items.slice(0, 5), {depth: 4});
     console.log(dict.entries.length + ' entries.');
     demo2();
@@ -56,7 +56,7 @@ function demo3() {
   console.log('\n--- DictionaryLocal match-objects for \'' + str + '\', ' +
     'with dictID-filter for \'' + dictID + '\':');
 
-  var options = { perPage: 10,  filter: {d: dictID} };
+  var options = { perPage: 10,  filter: {dictID: dictID} };
   dict.getMatchesForString(str, options, function (err, res) {
     showOutput(err, res, done);
   });
@@ -72,7 +72,7 @@ function done() {
 function showOutput(err, res, cb) {
   if (err)  console.log('Error: ' + err);
   else {
-    for (var i = 0;  i < res.items.length;  i++) {
+    for (var i = 0; i < res.items.length; i++) {
       console.log( matchToString(res.items[i]) );
     }
   }
@@ -83,16 +83,17 @@ function showOutput(err, res, cb) {
 
 function matchToString(m) {
   var arr = [
-    'w:\'' + m.w,
-    'd:\'' + m.d,
-    'i:\'' + m.i,
-    's:\'' + m.s,
+    'type:\''   + m.type,
+    'dictID:\'' + m.dictID,
+    'id:\''     + m.id,
+    'str:\''    + m.str,
   ];
-  if (m.y)  arr.push('y:\'' + m.y);
-  if (m.x)  arr.push('x:\'' + m.x);
+  if (m.style)  arr.push('style:\'' + m.style);
+  if (m.descr)  arr.push('descr:\'' + m.descr);
   if (m.z)  arr.push('z:\'' + JSON.stringify(m.z));
-  if (m.t)  arr.push('t:\'' + JSON.stringify(m.t)
-    .replace(/"s"/g, 's') .replace(/"y"/g, 'y').replace(/"x"/g, 'x'));
+  if (m.terms)  arr.push('terms:\'' + JSON.stringify(m.terms)
+    .replace(/"str"/g, 'str') .replace(/"style"/g, 'style')
+    .replace(/"descr"/g, 'descr'));
 
   return '{' + arr.join('\', ') + '}';
 }
