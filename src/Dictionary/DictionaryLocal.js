@@ -4,7 +4,6 @@ Design specification: see DictionaryLocal.spec.md.
 const Dictionary = require('./Dictionary');
 const callAsync   = require('./helpers/async').callAsync;
 const callAsyncOE = require('./helpers/async').callAsyncForOneOrEach;
-const {canonicalizeTerms, canonicalizeEntry} = require('./helpers/canonicalize');
 const {prepGetOptions, arrayQuery, zPropPrune} = require('./helpers/arrayQuery');
 const {deepClone, strcmp, asArray} = require('./helpers/util');
 
@@ -190,7 +189,7 @@ module.exports = class DictionaryLocal extends Dictionary {
       return cb(`entry for '${entry.id}' already exists`);
     }
 
-    entry = canonicalizeEntry(entry);
+    entry = Dictionary.canonicalizeEntry(entry);
     if (entry.terms.filter(t => !t.str).length)  return cb('invalid term');
 
     this.entries.push(entry);
@@ -219,8 +218,9 @@ module.exports = class DictionaryLocal extends Dictionary {
       asArray(entryLike.zDel) .forEach(key => delete entry.z[key]);
     }
 
-    // Replace-if-exists, or add, termObjects in `terms`.
-    canonicalizeTerms( entryLike.terms || [] ) .forEach(t => {
+    // Replace(-if-exists) or add, termObjects in `terms`.
+    var terms = Dictionary.canonicalizeTerms( entryLike.terms || [] );
+    terms.forEach(t => {
       var j = entry.terms.findIndex(t2 => t2.str == t.str);
       if (j >= 0)  entry.terms[j] = t;
       else  entry.terms.push(t);

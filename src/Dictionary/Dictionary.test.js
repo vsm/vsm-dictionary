@@ -342,4 +342,20 @@ describe('Dictionary.js', function() {
       cnt = 1;
     });
   });
+
+
+  describe('static methods', function() {
+    it('exposes canonicalizeEntry()', function() {
+      Dictionary.canonicalizeEntry(
+        { id:'A:01', dictID:'A', terms: 'abc', q: 1}
+      ).should.deep.equal(
+        { id:'A:01', dictID:'A', terms: [ {str: 'abc'} ]}
+      );
+    })
+    it('exposes canonicalizeTerms()', function() {
+      Dictionary.canonicalizeTerms('abc').should.deep.equal(
+        [ {str: 'abc'} ]
+      );
+    })
+  });
 });

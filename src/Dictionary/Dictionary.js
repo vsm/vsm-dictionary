@@ -2,6 +2,7 @@
 Design specification: see Dictionary.spec.md.
 */
 const toExponential = require('to-exponential');
+const canonicalize = require('./helpers/canonicalize');
 const {zPropPrune} = require('./helpers/arrayQuery');
 const {undef, deepClone, strcmp, asArray} = require('./helpers/util');
 
@@ -185,6 +186,16 @@ module.exports = class Dictionary {
       descr:  '[number]',
       type:   'N'
     };
+  }
+
+
+  static canonicalizeEntry(entry) {
+    return canonicalize.canonicalizeEntry(entry);
+  }
+
+
+  static canonicalizeTerms(terms) {
+    return canonicalize.canonicalizeTerms(terms);
   }
 
 

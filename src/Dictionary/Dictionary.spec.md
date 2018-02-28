@@ -437,13 +437,14 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
 
 
 &nbsp;  
-DELEGATED FUNCTIONALITY
+AUXILIARY FUNCTIONALITY
 -----------------------
-Here is just a selection of functionality, delegated to small extra modules:
+`Dictionary` exposes additional functionality that subclasses can use,
+in the form of static methods.
 
-+ 'canonicalize.js' provides functions to bring both entries and terms
-  from a possibly more simplified form, into their standard form as
-  described earlier, (and hereby deep-clones them).
++ `canonicalizeEntry()` and `canonicalizeTerms()`  provide functiontionality
+  to bring both entries and terms from a possibly more simplified form, into
+  their standard form as described earlier, (and hereby deep-clones them).
   &nbsp;
   When applying that functionality, `addEntries()` and `updateEntries()` (see
   below) can be made to behave in a more convenient and also forgiving way,
