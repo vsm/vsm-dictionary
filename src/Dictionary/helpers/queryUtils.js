@@ -1,22 +1,23 @@
 /*
-Contains shared functionality for DictionaryLocal's get-functions:
+Contains functionality that Dictionary and/or its subclasses get-functions
+may share:
 - standardizing the user-given `options` object;
-- querying on an array, with filtering, sorting, and pagination;
 - editing of the result array's items's `z`-object properties.
 */
 
-module.exports = {prepGetOptions, arrayQuery, zPropPrune};
+module.exports = {prepGetOptions, zPropPrune};
 
 
-const {undef, asArray, limitBetween} = require('./util');
+const {undef, asArray} = require('./util');
 
 const perPageDefault = 20;
 const perPageMax = 100;
 
 
-// Makes `options` and `options.filter` not-undefined,
-// and makes each `options.filter.<filterKey>` an Array or `false`,
-// and the same for `options.sort.<sortKey>` if given (only for match-search).
+// - Makes `options` and `options.filter` not-undefined,
+//   and makes each `options.filter.<filterKey>` an Array or `false`.
+// - If the optional `sortKeys` argument is given, then does the
+//   same for `options.sort.<sortKey>`.
 function prepGetOptions(options, filterKeys = [], sortKeys) {
   var o    = Object.assign({}, options  || {});  // Clone as well, ..
   o.filter = Object.assign({}, o.filter || {});  // .. to avoid side-effects.
@@ -31,17 +32,6 @@ function prepGetOptions(options, filterKeys = [], sortKeys) {
   function asArrayOrFalse(x) {
     return x ? asArray(x) : false;
   }
-}
-
-
-function arrayQuery(array, filter, sort, page, perPage) {
-  page    = limitBetween(page   || 1             , 1, null);
-  perPage = limitBetween(perPage|| perPageDefault, 1, perPageMax);
-  var skip = (page - 1) * perPage;
-  return array
-    .filter(filter)
-    .sort  (sort)
-    .slice (skip, skip + perPage);
 }
 
 

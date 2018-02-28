@@ -1,4 +1,4 @@
-module.exports = {undef, deepClone, strcmp, asArray, limitBetween};
+module.exports = {undef, deepClone, strcmp, asArray, limitBetween, arrayQuery};
 
 
 function undef(x) {
@@ -35,4 +35,16 @@ function asArray(x) {
 // If either min or max is null, it will be ignored.
 function limitBetween(x, min, max) {
   return (min != null && x < min) ? min : (max != null && x > max) ? max : x;
+}
+
+
+function arrayQuery(
+    array, filter, sort, page, perPage, perPageDefault = 20, perPageMax = 100) {
+  page    = limitBetween(page   || 1             , 1, null);
+  perPage = limitBetween(perPage|| perPageDefault, 1, perPageMax);
+  var skip = (page - 1) * perPage;
+  return array
+    .filter(filter)
+    .sort  (sort)
+    .slice (skip, skip + perPage);
 }

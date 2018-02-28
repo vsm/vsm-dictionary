@@ -442,9 +442,9 @@ AUXILIARY FUNCTIONALITY
 `Dictionary` exposes additional functionality that subclasses can use,
 in the form of static methods.
 
-+ `canonicalizeEntry()` and `canonicalizeTerms()`  provide functiontionality
-  to bring both entries and terms from a possibly more simplified form, into
-  their standard form as described earlier, (and hereby deep-clones them).
++ `canonicalizeEntry()` and `canonicalizeTerms()` :
+  these can take an entry/terms, and bring them from a possibly more simplified
+  form, into their standard form as described earlier (hereby deep-cloning them).
   &nbsp;
   When applying that functionality, `addEntries()` and `updateEntries()` (see
   below) can be made to behave in a more convenient and also forgiving way,
@@ -461,6 +461,15 @@ in the form of static methods.
   + It is still up to the particular implementation (a Dictionary subclass) for
     how to store this, as long as `getEntries()` returns them in the canonical
     way, like `{id:, dictID:, descr:, terms: [{str:, style:, descr:}, ...], z:}`.
++ `prepGetOptions()`:
+  this can take an `options` argument that was given to a subclasses's
+  `get...()` functions, and bring it into a form that is ready to compute on.
+  It ensures that `options.filter` (and optionally `options.sort` too) has
+  certain sub-properties that are either `false` or an Array.
++ `zPropPrune()`: performs `z`-property pruning as described above,
+  under `getEntries()`'s `options.z`. This may be useful for a subclass
+  (especially `DictionaryLocal`), and is used in `Dictionary` as well,
+  while adding fixedTerm-matches.
 
 
 &nbsp;  

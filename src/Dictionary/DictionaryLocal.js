@@ -4,15 +4,17 @@ Design specification: see DictionaryLocal.spec.md.
 const Dictionary = require('./Dictionary');
 const callAsync   = require('./helpers/async').callAsync;
 const callAsyncOE = require('./helpers/async').callAsyncForOneOrEach;
-const {prepGetOptions, arrayQuery, zPropPrune} = require('./helpers/arrayQuery');
-const {deepClone, strcmp, asArray} = require('./helpers/util');
-
+const {deepClone, strcmp, asArray, arrayQuery} = require('./helpers/util');
+const prepGetOptions = Dictionary.prepGetOptions;
+const zPropPrune     = Dictionary.zPropPrune;
 
 const msgAbsentDictInfo = s => `dictInfo for '${s}' does not exist`;
 const msgAbsentEntry    = s =>    `entry for '${s}' does not exist`;
 const msgAbsentRefTerm  = s =>      `refTerm '${s}' does not exist`;
 const msgNoSuchDictID   = s => `entry is linked to non-existent dictID '${s}'`;
 const f_id_numLength = 4;
+const perPageDefault = 20;
+const perPageMax     = 100;
 
 
 module.exports = class DictionaryLocal extends Dictionary {
@@ -29,6 +31,9 @@ module.exports = class DictionaryLocal extends Dictionary {
       var errs = this.addDictionaryData(opt.dictData || [], opt.refTerms);
       if (errs)  throw errs;
     }
+
+    this.perPageDefault = opt.perPageDefault || perPageDefault;
+    this.perPageMax     = opt.perPageMax     || perPageMax;
   }
 
 
@@ -298,7 +303,7 @@ module.exports = class DictionaryLocal extends Dictionary {
       (a, b) => strcmp(a.name, b.name) :
       (a, b) => strcmp(a.id, b.id);  // Default: sort by `id`.
 
-    var arr = arrayQuery(this.dictInfos, filter, sort, o.page, o.perPage);
+    var arr = this._arrayQuery(this.dictInfos, filter, sort, o.page, o.perPage);
     callAsync(cb, null, { items: arr });
   }
 
@@ -318,8 +323,8 @@ module.exports = class DictionaryLocal extends Dictionary {
                   strcmp(a.dictID, b.dictID) || strcmp(a.id, b.id):
         (a, b) => strcmp(a.dictID, b.dictID) || strcmp(a.id, b.id); // =Default.
 
-    var arr = arrayQuery(this.entries, filter, sort, o.page, o.perPage);
-    callAsync(cb, null, { items: zPropPrune(arr, o.z) });
+    var arr = this._arrayQuery(this.entries, filter, sort, o.page, o.perPage);
+    callAsync(cb, null, { items: Dictionary.zPropPrune(arr, o.z) });
   }
 
 
@@ -328,8 +333,14 @@ module.exports = class DictionaryLocal extends Dictionary {
     var filter = s => !o.filter.str || o.filter.str.includes(s);
     var sort = (a, b) => strcmp(a, b);
 
-    var arr = arrayQuery(this.refTerms, filter, sort, o.page, o.perPage);
+    var arr = this._arrayQuery(this.refTerms, filter, sort, o.page, o.perPage);
     callAsync(cb, null, { items: arr });
+  }
+
+
+  _arrayQuery(array, filter, sort, page, perPage) {
+    return arrayQuery(
+      array, filter, sort, page, perPage, this.perPageDefault, this.perPageMax);
   }
 
 
@@ -374,9 +385,9 @@ module.exports = class DictionaryLocal extends Dictionary {
       // Apply query, then replace each remaining item by a full 'match'-type
       // object, having: entry's `id/dictID/terms/z`,
       // term-object's `str/style/descr`, and match-type `type`.
-      arr = arrayQuery(arr, filter, sort, o.page, o.perPage)
+      arr = this._arrayQuery(arr, filter, sort, o.page, o.perPage)
         .map(x => Object.assign( {},  x.e,  x.e.terms[x.p],  {type: x.type} ));
-      arr = zPropPrune(arr, o.z);
+      arr = Dictionary.zPropPrune(arr, o.z);
     }
 
     // Possibly add an exactly-matching refTerm, to the front of `arr`.

@@ -1,4 +1,5 @@
-const {undef, deepClone, strcmp, asArray, limitBetween} = require('./util');
+const {undef, deepClone, strcmp, asArray, limitBetween, arrayQuery}
+  = require('./util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
@@ -79,6 +80,28 @@ describe('helpers/util.js', function() {
       'if the 2nd is `null`', function() {
       limitBetween(0, null, 3).should.equal(0);
       limitBetween(4, null, 3).should.equal(3);
+    });
+  });
+
+  describe('arrayQuery()', function() {
+    var arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+    var filter  = e => e < 7;
+    var filter2 = e => e > 3;
+    var sort = (a, b) => a%2 - b%2 || a - b; // Sort by: even vs odd, then value.
+    it('applies a given sort function', function() {
+      arrayQuery(arr, filter , sort).should.deep.equal([2, 4, 6, 1, 3, 5]);
+      arrayQuery(arr, filter2, sort).should.deep.equal([4, 6, 8, 5, 7, 9]);
+    });
+    it('applies a filter and sort function, and paginates, page 1', function() {
+      arrayQuery(arr, filter , sort, 1, 3).should.deep.equal([2, 4, 6]);
+      arrayQuery(arr, filter2, sort, 1, 3).should.deep.equal([4, 6, 8]);
+    });
+    it('applies a filter and sort function, and paginates, page 2', function() {
+      arrayQuery(arr, filter , sort, 2, 3).should.deep.equal([1, 3, 5]);
+      arrayQuery(arr, filter2, sort, 2, 3).should.deep.equal([5, 7, 9]);
+    });
+    it('rounds up invalid pagination arguments to 1', function() {
+      arrayQuery(arr, filter, sort, -1, -1).should.deep.equal([2]);
     });
   });
 });

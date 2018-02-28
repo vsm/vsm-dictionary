@@ -345,6 +345,9 @@ describe('Dictionary.js', function() {
 
 
   describe('static methods', function() {
+    // Here we just test that these functions are hooked up as static methods.
+    // Extended tests for them are defined in canonicalize.js and queryUtils.js.
+
     it('exposes canonicalizeEntry()', function() {
       Dictionary.canonicalizeEntry(
         { id:'A:01', dictID:'A', terms: 'abc', q: 1}
@@ -356,6 +359,14 @@ describe('Dictionary.js', function() {
       Dictionary.canonicalizeTerms('abc').should.deep.equal(
         [ {str: 'abc'} ]
       );
+    })
+    it('exposes prepGetOptions()', function() {
+      Dictionary.prepGetOptions({sort: {b: 'x'}}, ['a'], ['b'])
+      .should.deep.equal( {filter: {a: false}, sort: {b: ['x']}} );
+    })
+    it('exposes zPropPrune()', function() {
+      Dictionary.zPropPrune([ {z: {a: 1, b: 2, c: 3}, X: 9} ], ['a'])
+        .should.deep.equal( [ {z: {a: 1}, X: 9} ] );
     })
   });
 });

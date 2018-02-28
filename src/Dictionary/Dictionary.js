@@ -3,7 +3,7 @@ Design specification: see Dictionary.spec.md.
 */
 const toExponential = require('to-exponential');
 const canonicalize = require('./helpers/canonicalize');
-const {zPropPrune} = require('./helpers/arrayQuery');
+const queryUtils = require('./helpers/queryUtils');
 const {undef, deepClone, strcmp, asArray} = require('./helpers/util');
 
 const callAsync = (f, ...args) => setTimeout(() => f(...args), 0);
@@ -167,7 +167,7 @@ module.exports = class Dictionary {
       strcmp(a.dictID, b.dictID) || a.id - b.id
     );
 
-    return zPropPrune(arr, options.z);
+    return queryUtils.zPropPrune(arr, options.z);
   }
 
 
@@ -189,13 +189,23 @@ module.exports = class Dictionary {
   }
 
 
-  static canonicalizeEntry(entry) {
-    return canonicalize.canonicalizeEntry(entry);
+  static canonicalizeEntry(...args) {
+    return canonicalize.canonicalizeEntry(...args);
   }
 
 
-  static canonicalizeTerms(terms) {
-    return canonicalize.canonicalizeTerms(terms);
+  static canonicalizeTerms(...args) {
+    return canonicalize.canonicalizeTerms(...args);
+  }
+
+
+  static prepGetOptions(...args) {
+    return queryUtils.prepGetOptions(...args);
+  }
+
+
+  static zPropPrune(...args) {
+    return queryUtils.zPropPrune(...args);
   }
 
 

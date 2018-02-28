@@ -75,6 +75,18 @@ provides some extra functionality and augments some parent function definitions.
 
 
 &nbsp;  
+CONSTRUCTOR OPTIONS
+-------------------
+The constructor takes an `options` Object with optional properties:
+
+- The `dictData` and/or `refTerms` option properties cause `addDictionaryData()`
+  to be called, as described above.
+- `perPageDefault` and `perPageMax` override the default behavior of how many
+  items are returned per result-page (for dictInfos/entries/refTerms/matches)
+  by default, or maximum, respectively.
+
+
+&nbsp;  
 ADDITONAL INTERNAL FUNCTIONALITY
 --------------------------------
 - `this.entries` are sorted by dictID, then conceptID, for nice console-output.

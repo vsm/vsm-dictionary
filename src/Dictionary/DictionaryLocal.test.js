@@ -1432,4 +1432,30 @@ describe('DictionaryLocal.js', function() {
       });
     });
   });
+
+
+  describe('options perPageDefault / perPageMax', function() {
+    it('uses the constructor option `perPageDefault`', function(cb) {
+      var dict = new DictionaryLocal({perPageDefault: 3});
+      dict.addDictInfos([di1, di2], err => {
+        dict.addEntries([e1, e2, e3, e4], err => {
+          dict.getEntries(0, (err, res) => {
+            res.should.deep.equal({items: [e1, e2, e3]});
+            cb();
+          });
+        })
+      })
+    });
+    it('uses the constructor option `perPageMax`', function(cb) {
+      var dict = new DictionaryLocal({perPageMax: 2});
+      dict.addDictInfos([di1, di2], err => {
+        dict.addEntries([e1, e2, e3, e4], err => {
+          dict.getEntries({perPage: 20}, (err, res) => {  // Ask for more.
+            res.should.deep.equal({items: [e1, e2]});  // But gets only the max.
+            cb();
+          });
+        })
+      })
+    });
+  });
 });

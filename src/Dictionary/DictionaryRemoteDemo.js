@@ -13,7 +13,6 @@ received array into an `{ items: [...] }` object.
 */
 
 const Dictionary = require('./Dictionary');
-const {prepGetOptions} = require('./helpers/arrayQuery');
 
 
 module.exports = class DictionaryRemoteDemo extends Dictionary {
@@ -95,7 +94,7 @@ module.exports = class DictionaryRemoteDemo extends Dictionary {
 
   // Returns an `options` obj. in standard form like: `{filter: {dictID:[],..}, ..}`.
   _prepGetOptions(options, filterKeys = [], sortKeys) {
-    var o = prepGetOptions(options, filterKeys, sortKeys);
+    var o = Dictionary.prepGetOptions(options, filterKeys, sortKeys);
     var enc = encodeURIComponent;
 
     filterKeys.forEach(k => {  // Convert any `false` to `[]`, then encode all.
