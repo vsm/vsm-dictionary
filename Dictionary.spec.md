@@ -183,7 +183,7 @@ Subclasses must implement the following functions:
         + When no `filter` is given (default), returns all entry objects;
     - `sort`: {String}: one of:
         + 'dictID' (default, so also without giving an `options.sort`):
-            returned items are sorted by their `dictID`, then conceptID id`;
+            returned items are sorted by their `dictID`, then conceptID `id`;
         + 'id': sorts by conceptID `id` only;
         + 'str': sorts entries by their first term-string `terms[0].str`, then
             by `dictID`, and then by `id`;
