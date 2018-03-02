@@ -1,5 +1,4 @@
-const {undef, deepClone, strcmp, asArray, limitBetween, arrayQuery}
-  = require('./util');
+const {undef, deepClone, strcmp, asArray, callAsync} = require('./util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
@@ -65,43 +64,17 @@ describe('helpers/util.js', function() {
     });
   });
 
-  describe('limitBetween()', function() {
-    it('limits the 1st argument to be >= the 2nd and <= 3rd', function() {
-      limitBetween(2, 1, 3).should.equal(2);
-      limitBetween(0, 1, 3).should.equal(1);
-      limitBetween(4, 1, 3).should.equal(3);
-    });
-    it('only limits the 1st argument to be >= the 2nd, ' +
-      'if the 3rd is `null`', function() {
-      limitBetween(0, 1, null).should.equal(1);
-      limitBetween(4, 1, null).should.equal(4);
-    });
-    it('only limits the 1st argument to be <= the 3nd, ' +
-      'if the 2nd is `null`', function() {
-      limitBetween(0, null, 3).should.equal(0);
-      limitBetween(4, null, 3).should.equal(3);
-    });
-  });
+  describe('callAsync()', function() {
+    var f = (a, b, cb) => cb(null, a * b);
+    var count = 0;
 
-  describe('arrayQuery()', function() {
-    var arr = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-    var filter  = e => e < 7;
-    var filter2 = e => e > 3;
-    var sort = (a, b) => a%2 - b%2 || a - b; // Sort by: even vs odd, then value.
-    it('applies a given sort function', function() {
-      arrayQuery(arr, filter , sort).should.deep.equal([2, 4, 6, 1, 3, 5]);
-      arrayQuery(arr, filter2, sort).should.deep.equal([4, 6, 8, 5, 7, 9]);
-    });
-    it('applies a filter and sort function, and paginates, page 1', function() {
-      arrayQuery(arr, filter , sort, 1, 3).should.deep.equal([2, 4, 6]);
-      arrayQuery(arr, filter2, sort, 1, 3).should.deep.equal([4, 6, 8]);
-    });
-    it('applies a filter and sort function, and paginates, page 2', function() {
-      arrayQuery(arr, filter , sort, 2, 3).should.deep.equal([1, 3, 5]);
-      arrayQuery(arr, filter2, sort, 2, 3).should.deep.equal([5, 7, 9]);
-    });
-    it('rounds up invalid pagination arguments to 1', function() {
-      arrayQuery(arr, filter, sort, -1, -1).should.deep.equal([2]);
+    it('calls a function on the next event loop', function(cb) {
+      callAsync(f, 2, 5, (err, ans) => {
+        ans.should.equal(10);
+        count.should.equal(1);
+        cb();
+      });
+      count = 1;  // `f` will only be called after this assignment.
     });
   });
 });

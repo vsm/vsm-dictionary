@@ -1,6 +1,7 @@
 Dictionary.js
 =============
 
+Note: we simply use the name 'Dictionary' for VsmDictionary.
 
 &nbsp;  
 INTRODUCTION

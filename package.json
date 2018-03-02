@@ -1,14 +1,11 @@
 {
   "name": "vsm-dictionary",
-  "version": "0.2.0",
-  "description": "VSM-dictionary interface, local dictionary implementation, and remote dictionary demo",
-  "main": "dist/vsm-dictionary.js",
-  "module": "src/main.js",
+  "version": "1.0.0",
+  "description": "VSM-dictionary interface specification, and parent class, having shared code for subclass implementations",
+  "main": "src/Dictionary.js",
   "scripts": {
-    "test": "mocha  \"src/**/*.test.js\" --check-leaks",
-    "testw": "mocha  \"src/**/*.test.js\" --check-leaks --watch",
-    "start": "npm run demo",
-    "demo": "webpack-dev-server --config webpack.config.js"
+    "test": "mocha \"src/**/*.test.js\" --check-leaks",
+    "testw": "mocha \"src/**/*.test.js\" --check-leaks --watch"
   },
   "keywords": [
     "VSM",
@@ -28,20 +25,10 @@
   },
   "homepage": "https://github.com/vsmjs/vsm-dictionary#readme",
   "devDependencies": {
-    "@babel/core": "^7.0.0-beta.40",
-    "@babel/preset-env": "^7.0.0-beta.40",
-    "babel-loader": "^8.0.0-beta.0",
     "chai": "^4.1.2",
-    "copy-webpack-plugin": "^4.4.1",
-    "html-webpack-plugin": "^2.30.1",
-    "mocha": "^5.0.1",
-    "nock": "^9.1.9",
-    "text-transform-loader": "^2.0.0",
-    "webpack": "^3.11.0",
-    "webpack-dev-server": "^2.11.1"
+    "mocha": "^5.0.1"
   },
   "dependencies": {
-    "to-exponential": "^1.0.1",
-    "xmlhttprequest": "^1.8.0"
+    "to-exponential": "^1.0.1"
   }
 }

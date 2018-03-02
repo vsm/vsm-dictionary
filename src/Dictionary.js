@@ -4,12 +4,9 @@ Design specification: see Dictionary.spec.md.
 const toExponential = require('to-exponential');
 const canonicalize = require('./helpers/canonicalize');
 const queryUtils = require('./helpers/queryUtils');
-const {undef, deepClone, strcmp, asArray} = require('./helpers/util');
-
-const callAsync = (f, ...args) => setTimeout(() => f(...args), 0);
+const {undef, deepClone, strcmp, asArray, callAsync} = require('./helpers/util');
 
 const todoStr = 'to implement by a subclass';
-
 
 
 module.exports = class Dictionary {
