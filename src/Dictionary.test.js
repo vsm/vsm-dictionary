@@ -39,6 +39,24 @@ describe('Dictionary.js', function() {
     });
   });
 
+  describe('_prepIdts()', function() {
+    var dict = new Dictionary();
+    it('When given an empty array it returns an empty array', function() {
+      dict._prepIdts([]).should.deep.equal([]);
+    });
+    it('When given an array with empty string it returns an array with' + 
+    ' an object having as id property the empty string', function() {
+      dict._prepIdts(['']).should.deep.equal([ { id: '' } ]);
+    });
+    it('Returns proper formatted Idts with a varied element array input', 
+    function() {
+      dict._prepIdts(['', 'Astring', {id: 'SomeString'}, {id:'x', str:'xx'}])
+      .should.deep.equal(
+        [{id: ''}, {id: 'Astring'}, {id: 'SomeString'}, {id:'x', str:'xx'}]
+      );
+    });
+  });
+
 
   // Adds a mock getEntries() to `dict` that would be implemented by a subclass.
   function addMockGetEntries(dict) {
@@ -73,7 +91,6 @@ describe('Dictionary.js', function() {
 
     it('works with an empty array; it does not call getEntries() then, but ' +
       'still calls back on the next event-loop', function(cb) {
-      var len = Object.keys(dict.fixedTermsCache).length;
       dict.loadFixedTerms([], 0, err => {
         expect(err).to.equal(null);
         Object.keys(dict.fixedTermsCache).length.should.equal(0); // Unchanged.
@@ -144,12 +161,10 @@ describe('Dictionary.js', function() {
     });
 
     it('can forward an error from getEntries()', function(cb) {
-      var bk = dict.getEntries;
       dict.getEntries = (options, cb) => setTimeout(() => cb('err1'), 0);
 
       dict.loadFixedTerms([''], 0, err => {
         err.should.equal('err1');
-        dict.getEntries = bk;
         cnt.should.equal(1);
         cb();
       });
@@ -231,7 +246,7 @@ describe('Dictionary.js', function() {
       var dict = new Dictionary(
         { numberMatchConfig: { dictID: 'XX', conceptIDPrefix: 'XX:' } }
       );
-      dict._getNumberMatchForString('5')  .should.deep.equal(
+      dict._getNumberMatchForString('5').should.deep.equal(
         {id: 'XX:5e+0', dictID: 'XX', str: '5', descr: '[number]', type: 'N'});
     });
     it('does not return a match for a number, ' +
