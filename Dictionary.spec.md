@@ -168,7 +168,7 @@ Subclasses must implement the following functions:
     - `res`: {Object}: with properties:
       - `items`: {Array(Object)}: has a 'dictInfo' obj for each subdictionary;
       + Note: we wrap the result array into an object, so that future
-        implementations may still still add meta-information in extra fields,
+        implementations may still add meta-information in extra fields,
         e.g. a `hasMore` field.
   + Note: this is useful for VSM-autocomplete, to access `dictInfo.f_aci()`s.
 
@@ -417,13 +417,13 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
   by giving a `numberMatchConfig` object as property to the `options` object
   and passing that to the `Dictionary` constructor.
     `Dictionary.numberMatchConfig` {false|Object}:  
-        - `dictID`: {String}:
+    - `dictID`: {String}:
             is used as `dictID` in a generated match-object;
-        - `conceptIDPrefix`: {String}:
+    - `conceptIDPrefix`: {String}:
             is used as prefix to a conceptID's standardizing exponential form.
-        + If the object is `false`, then the addition of any number-string
+      + If the object is `false`, then the addition of any number-string
           match-objects is deactivated.
-          + So, `new DictionaryX({numberMatchConfig: false})` would create a
+      + So, `new DictionaryX({numberMatchConfig: false})` would create a
             subclass `DictionaryX` that does not generate number-string matches.
 + + A number-string match is only considered for the first results-page (as is
     also the case with fixedTerms).
