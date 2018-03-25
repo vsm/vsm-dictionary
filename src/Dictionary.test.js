@@ -44,15 +44,15 @@ describe('Dictionary.js', function() {
     it('returns an empty array when given an empty array', function() {
       dict._prepIdts([]).should.deep.equal([]);
     });
-    it('when given an array with empty string, returns an array with ' +
-      'an object having as id property the empty string', function() {
-      dict._prepIdts(['']).should.deep.equal([ { id: '' } ]);
+    it('when given an array with one string, returns an array with ' +
+      'an object having as id property that string', function() {
+      dict._prepIdts(['aa']).should.deep.equal([ { id: 'aa' } ]);
     });
-    it('returns proper formatted id+terms with a varied element array input',
+    it('returns proper formatted id/+str objs with a varied element array input',
       function() {
-      dict._prepIdts(['', 'Astring', {id: 'SomeString'}, {id:'x', str:'xx'}])
+      dict._prepIdts(['Astring', {id: 'SomeString'}, {id:'x', str:'xx'}])
         .should.deep.equal(
-          [{id: ''}, {id: 'Astring'}, {id: 'SomeString'}, {id:'x', str:'xx'}]
+          [{id: 'Astring'}, {id: 'SomeString'}, {id:'x', str:'xx'}]
         );
     });
   });
