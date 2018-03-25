@@ -41,19 +41,19 @@ describe('Dictionary.js', function() {
 
   describe('_prepIdts()', function() {
     var dict = new Dictionary();
-    it('When given an empty array it returns an empty array', function() {
+    it('returns an empty array when given an empty array', function() {
       dict._prepIdts([]).should.deep.equal([]);
     });
-    it('When given an array with empty string it returns an array with' + 
-    ' an object having as id property the empty string', function() {
+    it('when given an array with empty string, returns an array with ' +
+      'an object having as id property the empty string', function() {
       dict._prepIdts(['']).should.deep.equal([ { id: '' } ]);
     });
-    it('Returns proper formatted Idts with a varied element array input', 
-    function() {
+    it('returns proper formatted id+terms with a varied element array input',
+      function() {
       dict._prepIdts(['', 'Astring', {id: 'SomeString'}, {id:'x', str:'xx'}])
-      .should.deep.equal(
-        [{id: ''}, {id: 'Astring'}, {id: 'SomeString'}, {id:'x', str:'xx'}]
-      );
+        .should.deep.equal(
+          [{id: ''}, {id: 'Astring'}, {id: 'SomeString'}, {id:'x', str:'xx'}]
+        );
     });
   });
 
@@ -377,7 +377,7 @@ describe('Dictionary.js', function() {
     })
     it('exposes prepGetOptions()', function() {
       Dictionary.prepGetOptions({sort: {b: 'x'}}, ['a'], ['b'])
-      .should.deep.equal( {filter: {a: false}, sort: {b: ['x']}} );
+        .should.deep.equal( {filter: {a: false}, sort: {b: ['x']}} );
     })
     it('exposes zPropPrune()', function() {
       Dictionary.zPropPrune([ {z: {a: 1, b: 2, c: 3}, X: 9} ], ['a'])
