@@ -47,7 +47,11 @@ A `Dictionary` provides access to a (local or remote) list of
               full name of a subdictionary;
     - `f_aci()`: {Function} (optional):
               generates customized Autocomplete-item content for this subdict's
-              entries, using a subdict-specific style, or entries's extra-info;
+              entries.  
+              It can apply a specific style to entries of a particular subdict,
+              or add info from its entries's extra-info (`z`-obj, see below).
+              In the 'vsm-autocomplete' package, it will replace the "str"
+              part (only) of an Autocomplete selection-list item;
     - `f_id()`: {Function} (optional, only used in DictionaryLocal):
                 converts an {int} conceptID to {String}, e.g. 39 to 'X:0039'.
     + Note:
