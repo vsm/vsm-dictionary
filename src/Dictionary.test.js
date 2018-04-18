@@ -1,4 +1,5 @@
 const Dictionary = require('./Dictionary');
+const { deepClone } = require('./helpers/util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
@@ -337,24 +338,45 @@ describe('Dictionary.js', function() {
     });
 
     it('does not add a number-match if the subclass already returned a ' +
-      '(typically more informative) match for it; ' +
-      'and moves that match to the top', function(cb) {
+      '(typically more informative) match for it;\n        ' +
+      'but moves that match to the top, changes its `type` to \'N\', ' +
+      'and adds surrounding brackets to its `descr`', function(cb) {
       var ms = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
         { id:'00:1.2e+1', dictID:'00', str:'12', descr:'the amount of twelve',
           terms:[{str:'12'}, {str:'twelve'}, {str:'dozen'}], type:'S'
         }
       ];
-      dict.addExtraMatchesForString('12', ms, 0, (err, res) => {
+      var msArg = deepClone(ms); // Because addExtra..() changes the given array.
+      dict.addExtraMatchesForString('12', msArg, 0, (err, res) => {
         expect(err).to.equal(null);
         res.should.deep.equal([
-          Object.assign({}, ms[1], {type: 'N'}), // ==changes match-type to 'N'.
+          Object.assign({}, ms[1],
+            { type: 'N',                        // == changes match-type to 'N'.
+              descr: '[' + ms[1].descr + ']' }  // == adds surrounding brackets.
+          ),
           ms[0]
         ]);
         cnt.should.equal(1);
         cb();
       });
       cnt = 1;
+    });
+
+    it('in the above case, it fills an empty `descr`', function(cb) {
+      var ms = [
+        { id:'00:1.2e+1', dictID:'00', str:'12', terms:[{str:'12'}], type:'S' }
+      ];
+      dict.addExtraMatchesForString('12', deepClone(ms), 0, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal([
+          Object.assign({}, ms[0],
+            { type: 'N',
+              descr: '[number]' }  // == adds a default `descr` for match-type N.
+          ),
+        ]);
+        cb();
+      });
     });
   });
 

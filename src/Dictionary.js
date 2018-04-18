@@ -20,6 +20,11 @@ module.exports = class Dictionary {
       };
 
     this.fixedTermsCache = {};
+
+    this.matchDescrs = {  // The 'descr' property for special match-object types.
+      number: '[number]',
+      refTerm: '[referring term]'
+    }
   }
 
 
@@ -127,6 +132,12 @@ module.exports = class Dictionary {
       if (j >= 0)  match = arr.splice(j, 1)[0];
       arr.unshift(match);
       match.type = 'N';
+
+      // Ensure that a normal match's `descr` conforms that of a generated match.
+      if(!match.descr)  match.descr = this.matchDescrs.number;
+      else if(!/^[\[\(].*[\]\)]$/.test(match.descr)) {
+        match.descr = `[${match.descr}]`;
+      }
     }
     callAsync(cb, null, arr);
   }
@@ -180,7 +191,7 @@ module.exports = class Dictionary {
       id:     this.numberMatchConfig.conceptIDPrefix + id,
       dictID: this.numberMatchConfig.dictID,
       str:    str,
-      descr:  '[number]',
+      descr:  this.matchDescrs.number,
       type:   'N'
     };
   }
