@@ -28,20 +28,22 @@ module.exports = class Dictionary {
   }
 
 
-  // Fetches and stores (pre-loads) match-objects for a number of fixedTerms.
-  // - The fixedTerms are represented by `idts`, which stands for (a list of):
-  //   "ID plus optional Term-string"s. So each 'idts' item uniquely identifies
-  //   a fixedTerm.
-  // - For each fixedTerm, `loadFixedTerms()` uses `getEntries()` (implemented
-  //   by some subclass) to get full information about the entry it represents,
-  //   and builds a match-object for them.
-  // - Each of these match-objects is stored in `this.fixedTermsCache`, based on
-  //   on a lookup key, which is calculated from the ID+optional-term-string.
-  // - Later, when a call is made to `_getFixedMatchesForString()`, with as
-  //   `options.idts` a subset of the `idts` preloaded here, that function will
-  //   be able to get the relevant match-objects from the cache, without having
-  //   to launch an extra query on the data storage.
-  // Always calls `cb` on the next event-loop, as long as getEntries() does too.
+  /**
+   * Fetches and stores (pre-loads) match-objects for the requested fixedTerms.
+   * - The fixedTerms are represented by `idts`, which stands for (a list of):
+   *   "ID plus optional Term-string"s. So each 'idts' item uniquely identifies
+   *   a fixedTerm.
+   * - For each fixedTerm, `loadFixedTerms()` uses `getEntries()` (implemented
+   *   by some subclass) to get full information about the entry it represents,
+   *   and builds a match-object for them.
+   * - Each of these match-objects is stored in `this.fixedTermsCache`, based on
+   *   on a lookup key, which is calculated from the ID+optional-term-string.
+   * - Later, when a call is made to `_getFixedMatchesForString()`, with as
+   *   `options.idts` a subset of the `idts` preloaded here, that function will
+   *   be able to get the relevant match-objects from the cache, without having
+   *   to launch an extra query on the data storage.
+   * Always calls `cb` on the next event-loop, as long as getEntries() does too.
+   */
   loadFixedTerms(idts, options, cb) {
     idts = this._prepIdts(idts);
 
@@ -77,31 +79,39 @@ module.exports = class Dictionary {
   }
 
 
-  // Brings a conceptID-and-optional-termStrings array into canonical form, e.g.
-  // `['id', {id:'id2', str:..}, ..]` --> `[{id:'id'}, {id:'id2', str:..}, ..]`.
+  /**
+   * Brings a conceptID-and-optional-termStrings array into canonical form, e.g.
+   * `['id', {id:'id2', str:..}, ..]` --> `[{id:'id'}, {id:'id2', str:..}, ..]`.
+   */
   _prepIdts(idts) {
     return asArray(idts).map(x => !x.id ? {id: x} : x);
   }
 
 
-  // Given a fixedTerm's conceptID plus (optionally) a term-string, calculates
-  // the key in `fixedTermsCache` that a match-object for that pair should get.
+  /**
+   * Given a fixedTerm's conceptID plus (optionally) a term-string, calculates
+   * the key in `fixedTermsCache` that a match-object for that pair should get.
+   */
   _idtToFTCacheKey(conceptID, termStr = '') {
     return `${conceptID}\n${termStr}`;
   }
 
 
-  // Builds a match-object, based on an entry and one of its terms.
+  /**
+   * Builds a match-object, based on an entry and one of its terms.
+   */
   _entryToMatch(entry, termPos, matchType) {
     return Object.assign({}, entry, entry.terms[termPos], {type: matchType});
   }
 
 
-  // Gets possible fixedTerm- and numberString match-objects for `str`, and
-  // merges them into an array of normal matches, which come from a subclass's
-  // `getMatchesForString()` (which must make the call to this function).
-  // Only has an effect for result-page 1.
-  // Always calls `cb` on the next event-loop.
+  /**
+   * Gets possible fixedTerm- and numberString match-objects for `str`, and
+   * merges them into an array of normal matches, which come from a subclass's
+   * `getMatchesForString()` (which must make a call to this function).
+   * Only has an effect for result-page 1.
+   * Always calls `cb` on the next event-loop.
+   */
   addExtraMatchesForString(str, arr, options, cb) {
     // If the requested page > 1, add no matches.
     if (options && (options.page || 1) > 1)  return callAsync(cb, null, arr);
@@ -143,9 +153,11 @@ module.exports = class Dictionary {
   }
 
 
-  // Searches `str` in `options.idts`'s linked fixedTerms's strings,
-  // and (synchronously) returns newly constructed match-objects,
-  // sorted and z-pruned (once more, on top of what `loadFixedTerms()` pruned).
+  /**
+   * Searches `str` in `options.idts`'s linked fixedTerms's strings,
+   * and (synchronously) returns newly constructed match-objects,
+   * sorted and z-pruned (once more, on top of what `loadFixedTerms()` pruned).
+   */
   _getFixedMatchesForString(str, options) {
     // If no FT-lookup is requested, return no matches.
     if (!options || !options.idts)  return [];
@@ -179,8 +191,10 @@ module.exports = class Dictionary {
   }
 
 
-  // If `str` represents a number, then creates a 'number-matchObject',
-  // with as conceptID a canonicalized ID based on the number's value.
+  /**
+   * If `str` represents a number, then creates a 'number-matchObject',
+   * with as conceptID a canonicalized ID based on the number's value.
+   */
   _getNumberMatchForString(str) {
     if (!this.numberMatchConfig || !str)  return false;
 
