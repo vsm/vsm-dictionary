@@ -13,11 +13,13 @@ that make them accessible through their own API.
 
 `vsm-dictionary` provides a standardized interface for communicating with
 dictionary webservers, in order to support VSM-sentence-building tools.
-(Tools such as 'vsm-autocomplete', or more advanced
-term-search/store/manage components).
+(Tools such as [`vsm-autocomplete`](https://github.com/vsmjs/vsm-autocomplete),
+or more advanced components for searching, storing, and managing terms).
 
 In addition, `vsm-dictionary` is designed to handle multiple 'sub-dictionaries',
-as well as multiple synonyms per term.
+as well as multiple synonyms per term.  
+And it supports the representation of stylized terms,
+e.g. with italic or superscript parts like <i>Ca<sup>2+</sup></i>, and more.
 
 <br>
 
