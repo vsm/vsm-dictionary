@@ -45,19 +45,27 @@ A `Dictionary` provides access to a (local or remote) list of
               typically an abbreviation (e.g. "HUGO") and unmodifiable in a DB;
     - `name`: {String}:
               full name of a subdictionary;
-    - `f_aci()`: {Function} (optional):
-              generates customized Autocomplete-item content for this subdict's
-              entries.  
-              It can apply a specific style to entries of a particular subdict,
-              or add info from its entries's extra-info (`z`-obj, see below).
-              In the 'vsm-autocomplete' package, it will replace the "str"
-              part (only) of an Autocomplete selection-list item;
-    - `f_id()`: {Function} (optional, only used in DictionaryLocal):
-                converts an {int} conceptID to {String}, e.g. 39 to 'X:0039'.
-    + Note:
-      + Because functions can not be JSON.stringify()'ed, any Function-type
-        property `f_*()` must be passed as String which will be `eval()`'ed.
-        This must be a string like: "function (descr) { return descr + 1; }".
+    - `f_aci(matchObject, styledTrimmedStr, searchStr)`: {Function} (optional):  
+              a function that applies a custom style to 'match'es from
+              this subdictionary, when they are represented in a
+              user interface as an **A**uto**c**omplete **i**tem.  
+        + _(See further below for a description of the variable names_
+          _used in the next two points)_.
+        + It can apply a specific style to all entries of this particular
+          subdictionary. It can also use info from each particular
+          entry/match's extra-info (`z`-obj).
+        + Specifically, in the npm-package `vsm-autocomplete`,
+          this function will receive the match object, the match's `str`
+          with its `style` already applied
+          (by the npm-package `string-style-html`), and the `searchStr`
+          that the user typed.  
+          Its return value replaces the `str` (=term) part of the Autocomplete
+          selection-panel item. (It does not replace the `descr` or `id` parts).
+    + Notes:
+      + Additional `f_*()` functions may be defined in subclasses.
+      + Functions can not be stored in a JSON data-object, so Function-typed
+        properties `f_*()` may be passed as String, which will be `eval()`'ed.  
+        This must be a string like: "function(x) { return x + 1; }".
 
 2. An 'entry' represents a *concept* and is an object with properties:
     - `id`: {String}:
