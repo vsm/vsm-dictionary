@@ -19,12 +19,17 @@ module.exports = class Dictionary {
         conceptIDPrefix: '00:',
       };
 
-    this.fixedTermsCache = {};
+    this.extraDictInfos = !this.numberMatchConfig ? [] : [
+      { id: this.numberMatchConfig.dictID,
+        name: 'Numbers' }
+    ];
 
     this.matchDescrs = {  // The 'descr' property for special match-object types.
       number: '[number]',
       refTerm: '[referring term]'
     }
+
+    this.fixedTermsCache = {};
   }
 
 
@@ -208,6 +213,17 @@ module.exports = class Dictionary {
       descr:  this.matchDescrs.number,
       type:   'N'
     };
+  }
+
+
+  /**
+   * Returns an Array of dictInfos, for all custom dictIDs that VsmDictionary
+   * may create in items added to `addExtraMatchesForString()`.
+   * + (Currently, this is only the dictInfo for number-string matches).
+   * + This is a simple, synchronous function, without any filter etc `options`.
+   */
+  getExtraDictInfos() {
+    return this.extraDictInfos;
   }
 
 

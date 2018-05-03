@@ -448,6 +448,25 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
     dictionary), then the normal match is used instead of the generated one
     (as it may be more informative than the generated one), and it is moved
     to the top of the matches-list, and it gets its `type` set to `'N'`.
+    <br><br>
++ Because the above introduces a new dictID, we need a function
+  that can provide a dictInfo-object for it:  
+  `getExtraDictInfos()`:  
+  + Returns an Array of dictInfos, for all the custom dictIDs that VsmDictionary
+    can create, in items that it may add via `addExtraMatchesForString()`.  
+    Currently, this is only the dictInfo for number-string matches.
+  + Note: This is just a 'getExtraDictInfos', not a 'addExtraDictInfos'.  
+    + Because, while `addExtraMatchesForString()` needs to merge its results
+      into a list that should be N/R/etc-sorted for use in an autocomplete,
+      no result-merging is needed here.  
+    + So subclasses do not need to call a 'addExtraDictInfos' in their
+      `getDictInfos()`.  
+      So their spec can be kept nice and narrow, to manage only the
+      direct Create/Read/Update/Delete, of their own, stored dictInfos.  
+      (Unlike getMatchesForString, which manages a derived result,
+      in which the parent class may assist).
+    + Instead, users of VsmDictionary need to make an extra call to 
+      `getExtraDictInfos()` to get dictInfos for number-string/etc matches.
 
 
 &nbsp;  

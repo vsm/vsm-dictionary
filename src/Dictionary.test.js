@@ -239,6 +239,7 @@ describe('Dictionary.js', function() {
   describe('_getNumberMatchForString()', function() {
     it('returns a match for a number, ' +
       'under the default number-match configuration', function() {
+      dict = new Dictionary();
       dict._getNumberMatchForString('5').should.deep.equal(
         {id: '00:5e+0', dictID: '00', str: '5', descr: '[number]', type: 'N'});
     });
@@ -254,6 +255,27 @@ describe('Dictionary.js', function() {
       'only if configured not to do so', function() {
       var dict = new Dictionary({numberMatchConfig: false});
       dict._getNumberMatchForString('5').should.equal(false);
+    });
+  });
+
+
+  describe('getExtraDictInfos()', function() {
+    it('returns an array with one dictInfo, ' +
+      'under the default number-match configuration', function() {
+      dict = new Dictionary();
+      dict.getExtraDictInfos().should.deep.equal([{ id: '00', name: 'Numbers'}]);
+    });
+    it('returns an array with one dictInfo, ' +
+      'using custom \'number-string\' settings', function() {
+      var dict = new Dictionary(
+        { numberMatchConfig: { dictID: 'XX', conceptIDPrefix: 'XX:' } }
+      );
+      dict.getExtraDictInfos().should.deep.equal([{ id: 'XX', name: 'Numbers'}]);
+    });
+    it('returns an empty array, ' +
+      'if configured to not return number-string matches', function() {
+      var dict = new Dictionary({numberMatchConfig: false});
+      dict.getExtraDictInfos().should.deep.equal([]);
     });
   });
 
