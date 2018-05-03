@@ -176,7 +176,8 @@ Subclasses must implement the following functions:
         some DictionaryX-subclass implementation's particular limit (without
         notification); if not given it will be DictionaryX's own default value.
   - `cb`: {Function}: is a callback function with arguments:
-    - `err`: {null|String|Object}: null if no error, else the error/message;
+    - `err`: {null|String|Object}: null if no error, else the error/message;  
+      + Note: no error occurs if no dictInfo was found for some `id` in `filter`;
     - `res`: {Object}: with properties:
       - `items`: {Array(Object)}: has a 'dictInfo' obj for each subdictionary;
       + Note: we wrap the result array into an object, so that future
