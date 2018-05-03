@@ -27,7 +27,7 @@ module.exports = class Dictionary {
     this.matchDescrs = {  // The 'descr' property for special match-object types.
       number: '[number]',
       refTerm: '[referring term]'
-    }
+    };
 
     this.fixedTermsCache = {};
   }
