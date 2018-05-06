@@ -45,22 +45,19 @@ A `Dictionary` provides access to a (local or remote) list of
               typically an abbreviation (e.g. "HUGO") and unmodifiable in a DB;
     - `name`: {String}:
               full name of a subdictionary;
-    - `f_aci(matchObject, styledTrimmedStr, searchStr)`: {Function} (optional):  
-              a function that applies a custom style to 'match'es from
-              this subdictionary, when they are represented in a
-              user interface as an **A**uto**c**omplete **i**tem.  
-        + _(See further below for a description of the variable names_
-          _used in the next two points)_.
-        + It can apply a specific style to all entries of this particular
-          subdictionary. It can also use info from each particular
-          entry/match's extra-info (`z`-obj).
-        + Specifically, in the npm-package `vsm-autocomplete`,
-          this function will receive the match object, the match's `str`
-          with its `style` already applied
-          (by the npm-package `string-style-html`), and the `searchStr`
-          that the user typed.  
-          Its return value replaces the `str` (=term) part of the Autocomplete
-          selection-panel item. (It does not replace the `descr` or `id` parts).
+    - `f_aci()`: {Function} (optional):  
+        + In a user interface (UI), when a user searches for terms in this
+          subdictionary, the matching results can be shown in a list of
+          UI-components called "**A**uto**c**omplete **i**tem"s.  
+          `f_aci()` can be used to define customized content
+          for such a list item, specific to a subdictionary.  
+        + E.g. for a Human Gene names dictionary: one could add a list of
+          gene-name synonyms.  
+          Or for a Taxonomy dictionary: it could show an image of the organism
+          next to its species name.
+        + This function is described in `vsm-autocomplete`'s
+          [specification](https://github.com/vsmjs/vsm-autocomplete).
+          (This requires familiarity with the 'match' data type, described below).
     + Notes:
       + Additional `f_*()` functions may be defined in subclasses.
       + Functions can not be stored in a JSON data-object, so Function-typed
@@ -131,7 +128,6 @@ A `Dictionary` provides access to a (local or remote) list of
         linked to the same ID, but will then have a different term-string `str`!
       + When multiple match-objects are returned as a list, they should be
         sorted in the order: N, R, F, G, S, T.
-
 
 4. A 'refTerm' is a pure string that does not represent a concept on its own,
   but that is commonly used to refer to another concept, like "it" or "that".
