@@ -241,7 +241,7 @@ describe('Dictionary.js', function() {
       'under the default number-match configuration', function() {
       dict = new Dictionary();
       dict._getNumberMatchForString('5').should.deep.equal(
-        {id: '00:5e+0', dictID: '00', str: '5', descr: '[number]', type: 'N'});
+        {id: '00:5e+0', dictID: '00', str: '5', descr: 'number', type: 'N'});
     });
     it('returns a match for a number, ' +
       'using custom \'number-string\' settings', function() {
@@ -249,7 +249,7 @@ describe('Dictionary.js', function() {
         { numberMatchConfig: { dictID: 'XX', conceptIDPrefix: 'XX:' } }
       );
       dict._getNumberMatchForString('5').should.deep.equal(
-        {id: 'XX:5e+0', dictID: 'XX', str: '5', descr: '[number]', type: 'N'});
+        {id: 'XX:5e+0', dictID: 'XX', str: '5', descr: 'number', type: 'N'});
     });
     it('does not return a match for a number, ' +
       'only if configured not to do so', function() {
@@ -349,7 +349,7 @@ describe('Dictionary.js', function() {
       dict.addExtraMatchesForString('10.5', ms, 0, (err, res) => {
         expect(err).to.equal(null);
         res.should.deep.equal([
-          { id:'00:1.05e+1', dictID:'00', str: '10.5', descr: '[number]',
+          { id:'00:1.05e+1', dictID:'00', str: '10.5', descr: 'number',
             type:'N' },
           { id:'c', dictID:'X', str:'c2', type:'S' },
         ]);
@@ -361,8 +361,8 @@ describe('Dictionary.js', function() {
 
     it('does not add a number-match if the subclass already returned a ' +
       '(typically more informative) match for it;\n        ' +
-      'but moves that match to the top, changes its `type` to \'N\', ' +
-      'and adds surrounding brackets to its `descr`', function(cb) {
+      'but moves that match to the top, ' +
+      'and changes its `type` to \'N\'', function(cb) {
       var ms = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
         { id:'00:1.2e+1', dictID:'00', str:'12', descr:'the amount of twelve',
@@ -373,10 +373,7 @@ describe('Dictionary.js', function() {
       dict.addExtraMatchesForString('12', msArg, 0, (err, res) => {
         expect(err).to.equal(null);
         res.should.deep.equal([
-          Object.assign({}, ms[1],
-            { type: 'N',                        // == changes match-type to 'N'.
-              descr: '[' + ms[1].descr + ']' }  // == adds surrounding brackets.
-          ),
+          Object.assign({}, ms[1], { type: 'N' } ),  // == match-type --> 'N'.
           ms[0]
         ]);
         cnt.should.equal(1);
@@ -394,7 +391,7 @@ describe('Dictionary.js', function() {
         res.should.deep.equal([
           Object.assign({}, ms[0],
             { type: 'N',
-              descr: '[number]' }  // == adds a default `descr` for match-type N.
+              descr: 'number' }  // == adds a default `descr` for match-type N.
           ),
         ]);
         cb();

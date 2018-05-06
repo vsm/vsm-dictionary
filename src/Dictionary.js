@@ -25,8 +25,8 @@ module.exports = class Dictionary {
     ];
 
     this.matchDescrs = {  // The 'descr' property for special match-object types.
-      number: '[number]',
-      refTerm: '[referring term]'
+      number: 'number',
+      refTerm: 'referring term'
     };
 
     this.fixedTermsCache = {};
@@ -147,12 +147,7 @@ module.exports = class Dictionary {
       if (j >= 0)  match = arr.splice(j, 1)[0];
       arr.unshift(match);
       match.type = 'N';
-
-      // Ensure that a normal match's `descr` conforms that of a generated match.
       if(!match.descr)  match.descr = this.matchDescrs.number;
-      else if(!/^[\[\(].*[\]\)]$/.test(match.descr)) {
-        match.descr = `[${match.descr}]`;
-      }
     }
     callAsync(cb, null, arr);
   }
