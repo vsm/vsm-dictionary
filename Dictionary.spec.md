@@ -418,9 +418,10 @@ subclasses should pass this object when calling `super`, i.e. `super(options)`.
   strings that represent the same value, on the same ID. A prefix is added too.
   + E.g. it maps both '105' and '0.105E3' onto the same ID: '00:1.05e+2'.
   + For strings representable as a 64-bit number in JS, this corresponds to
-    a prefix plus the result of `Number(str).toExponential()`. For higher-
-    precision numbers (many decimals), and for very large or small numbers
-    (> 64-bit exponent), the ID is also generated correctly, with 'numToExp.js'.
+    a prefix plus the result of `Number(str).toExponential()`. For
+    higher-precision numbers (many decimals), and for very large or small
+    numbers (> 64-bit exponent), the ID is also generated correctly,
+    with 'numToExp.js'.
 + The prefix '00:' represents an implicit 'numeric sub-dictionary'.
   Its dictID and this prefix are set to default values, but they can be changed
   by giving a `numberMatchConfig` object as property to the `options` object
