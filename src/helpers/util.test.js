@@ -1,4 +1,4 @@
-const {undef, deepClone, strcmp, asArray, callAsync} = require('./util');
+const {undef, deepClone, strcmp, callAsync} = require('./util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
@@ -45,22 +45,6 @@ describe('helpers/util.js', function() {
     it('is usable as a sort-function', function() {
       ['c','B','a'].sort((a, b) => strcmp(a, b))
         .should.deep.equal(['a','B','c']);
-    });
-  });
-
-  describe('asArray()', function() {
-    it('returns a passed Array without changes', function() {
-      asArray([1, 2]).should.deep.equal([1, 2]);
-    });
-    it('wraps a single value into an Array', function() {
-      asArray(1).should.deep.equal([1]);
-    });
-    it('wraps `null` into an Array', function() {
-      asArray(null).should.deep.equal([null]);
-    });
-    it('returns an empty Array for `undefined`', function() {
-      asArray().should.deep.equal([]);
-      asArray(undefined).should.deep.equal([]);
     });
   });
 

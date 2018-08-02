@@ -1,10 +1,9 @@
 /*
 Design specification: see Dictionary.spec.md.
 */
+const { prepTerms, prepEntry, zPropPrune } = require('./helpers/commonUtils');
+const {deepClone, strcmp, callAsync} = require('./helpers/util');
 const toExponential = require('to-exponential');
-const canonicalize = require('./helpers/canonicalize');
-const queryUtils = require('./helpers/queryUtils');
-const {undef, deepClone, strcmp, asArray, callAsync} = require('./helpers/util');
 
 const todoStr = 'to implement by a subclass';
 
@@ -13,15 +12,18 @@ module.exports = class Dictionary {
 
   constructor(options) {
     var opt = options || {};
-    this.numberMatchConfig = !undef(opt.numberMatchConfig) ?  // false==deactiv.
+    this.numberMatchConfig =
+      ( opt.numberMatchConfig === false  ||  // `false` means: deactivate it.
+        typeof opt.numberMatchConfig === 'object' ) ?
       opt.numberMatchConfig :
       { dictID         : '00',
-        conceptIDPrefix: '00:',
+        conceptIDPrefix: '00:'
       };
 
     this.extraDictInfos = !this.numberMatchConfig ? [] : [
       { id: this.numberMatchConfig.dictID,
-        name: 'Numbers' }
+        name: 'Numbers'
+      }
     ];
 
     this.matchDescrs = {  // The 'descr' property for special match-object types.
@@ -36,8 +38,9 @@ module.exports = class Dictionary {
   /**
    * Fetches and stores (pre-loads) match-objects for the requested fixedTerms.
    * - The fixedTerms are represented by `idts`, which stands for (a list of):
-   *   "ID plus optional Term-string"s. So each 'idts' item uniquely identifies
-   *   a fixedTerm.
+   *   "ID plus optional Term-string" objects. So each 'idts' item uniquely
+   *   identifies a fixedTerm.
+   * - An `idts`-list-element has the form: `{id:..}` or `{id:.., str:..}`.
    * - For each fixedTerm, `loadFixedTerms()` uses `getEntries()` (implemented
    *   by some subclass) to get full information about the entry it represents,
    *   and builds a match-object for them.
@@ -50,13 +53,11 @@ module.exports = class Dictionary {
    * Always calls `cb` on the next event-loop, as long as getEntries() does too.
    */
   loadFixedTerms(idts, options, cb) {
-    idts = this._prepIdts(idts);
-
-    // Prevent unfiltered query; (`opt.filter.id=[]` would request all entries).
-    // Also. call back on next event-loop, as `getEntries()` can't do that now.
+    // Prevent unfiltered query; (`opt.filter.id=[]` would request all entries);
+    // also, call back on next event-loop, as `getEntries()` can't do this now.
     if (!idts.length)  return callAsync(cb, null);
 
-    var opt = options ? deepClone(options) : {};
+    var opt = deepClone(options);
     if (!opt.filter)  opt.filter = {};
     opt.filter.id = idts.map(x => x.id); // Query `getEntries()` for idts's IDs.
     opt.page      = 1;
@@ -81,15 +82,6 @@ module.exports = class Dictionary {
 
       cb(null);
     });
-  }
-
-
-  /**
-   * Brings a conceptID-and-optional-termStrings array into canonical form, e.g.
-   * `['id', {id:'id2', str:..}, ..]` --> `[{id:'id'}, {id:'id2', str:..}, ..]`.
-   */
-  _prepIdts(idts) {
-    return asArray(idts).map(x => !x.id ? {id: x} : x);
   }
 
 
@@ -119,7 +111,7 @@ module.exports = class Dictionary {
    */
   addExtraMatchesForString(str, arr, options, cb) {
     // If the requested page > 1, add no matches.
-    if (options && (options.page || 1) > 1)  return callAsync(cb, null, arr);
+    if ((options.page || 1) > 1)  return callAsync(cb, null, arr);
     arr = arr.slice(0);  // Duplicate before editing.
 
     var res = this._getFixedMatchesForString(str, options);
@@ -160,11 +152,11 @@ module.exports = class Dictionary {
    */
   _getFixedMatchesForString(str, options) {
     // If no FT-lookup is requested, return no matches.
-    if (!options || !options.idts)  return [];
+    if (!options.idts)  return [];
 
     var arr = [];
     var str = str.toLowerCase();
-    var idts = this._prepIdts(options.idts);
+    var idts = options.idts;
 
     // Here we could first `.map()` the given `idts` onto match-objects from
     // `fixedTermsCache`, and then filter out those that didn't have a match.
@@ -187,7 +179,7 @@ module.exports = class Dictionary {
       strcmp(a.dictID, b.dictID) || a.id - b.id
     );
 
-    return queryUtils.zPropPrune(arr, options.z);
+    return zPropPrune(arr, options.z);
   }
 
 
@@ -222,23 +214,18 @@ module.exports = class Dictionary {
   }
 
 
-  static canonicalizeEntry(...args) {
-    return canonicalize.canonicalizeEntry(...args);
+  static prepTerms(...args) {
+    return prepTerms(...args);
   }
 
 
-  static canonicalizeTerms(...args) {
-    return canonicalize.canonicalizeTerms(...args);
-  }
-
-
-  static prepGetOptions(...args) {
-    return queryUtils.prepGetOptions(...args);
+  static prepEntry(...args) {
+    return prepEntry(...args);
   }
 
 
   static zPropPrune(...args) {
-    return queryUtils.zPropPrune(...args);
+    return zPropPrune(...args);
   }
 
 

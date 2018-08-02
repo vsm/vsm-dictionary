@@ -16,10 +16,10 @@ dictionary webservers, in order to support VSM-sentence-building tools.
 (Tools such as [`vsm-autocomplete`](https://github.com/vsmjs/vsm-autocomplete),
 or more advanced components for searching, storing, and managing terms).
 
-In addition, `vsm-dictionary` is designed to handle multiple 'sub-dictionaries',
+`vsm-dictionary` is also designed to handle multiple 'sub-dictionaries',
 as well as multiple synonyms per term.  
 And it supports the representation of stylized terms,
-e.g. with italic or superscript parts like <i>Ca<sup>2+</sup></i>, and more.
+e.g. with italic or superscript parts, like <i>Ca<sup>2+</sup></i>, and more.
 
 <br>
 
