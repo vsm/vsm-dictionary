@@ -91,7 +91,7 @@ and [`VsmDictionaryRemoteDemo`](https://github.com/vsmjs/vsm-dictionary-remote-d
 
 <br>
 
-```
+```javascript
 // Import the parent class.
 const VsmDictionary = require('vsm-dictionary');
 
@@ -133,7 +133,7 @@ module.exports = class VsmDictionaryNewwwww extends VsmDictionary {
 <div style="font-size: smaller;">
 
 (which can already be used in:
-```
+```javascript
 var Dict = require('./VsmDictionaryNewwwww.js');
 var dict = new Dict();
 console.dir(dict);
