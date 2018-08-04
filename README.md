@@ -79,7 +79,7 @@ cd    vsm-dictionary-newwwww
 npm init -y
 ```
 ```
-npm install vsm-dictionary --save
+npm install vsm-dictionary
 ```
 
 <br>
