@@ -186,6 +186,7 @@ module.exports = class Dictionary {
   /**
    * If `str` represents a number, then creates a 'number-matchObject',
    * with as conceptID a canonicalized ID based on the number's value.
+   * Else, returns `false`.
    */
   _getNumberMatchForString(str) {
     if (!this.numberMatchConfig || !str)  return false;
@@ -199,6 +200,22 @@ module.exports = class Dictionary {
       str:    str,
       descr:  this.matchDescrs.number,
       type:   'N'
+    };
+  }
+
+
+  /**
+   * Given a refTerm String, returns a match-object with the necessary props.
+   * While subclasses handle the querying of refTerm strings, they can use this
+   * shared function to wrap them into match-objects.
+   */
+  refTermToMatch(refTerm) {
+    return {
+      id:     '',
+      dictID: '',
+      str:    refTerm,
+      descr:  this.matchDescrs.refTerm,
+      type:   'R'
     };
   }
 

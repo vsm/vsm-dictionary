@@ -245,6 +245,15 @@ describe('Dictionary.js', function() {
   });
 
 
+  describe('refTermToMatch()', function() {
+    it('wraps a given string into a refTerm-type match-object', function() {
+      dict = new Dictionary();
+      dict.refTermToMatch('abc').should.deep.equal(
+        {id: '', dictID: '', str: 'abc', descr: 'referring term', type: 'R'});
+    });
+  });
+
+
   describe('getExtraDictInfos()', function() {
     it('returns an array with one dictInfo, ' +
       'under the default number-match configuration', function() {
