@@ -276,7 +276,7 @@ describe('Dictionary.js', function() {
 
 
   describe('getRefTerms(), default implementation', function() {
-    var allRefTerms = ['it', 'this', 'that', 'them'].sort();
+    var allRefTerms = ['it', 'this', 'that', 'they', 'these', 'them'].sort();
 
     it('gets for one String, returned via a truly-asynchronous ' +
       'callback', function(cb) {
@@ -329,7 +329,8 @@ describe('Dictionary.js', function() {
       var count = 0;
       dict.getRefTerms({ page: -5, perPage: -5 }, (err, res) => {
         expect(err).to.equal(null);
-        res.should.deep.equal({ items: ['it'] }); // Because page = perPage = 1.
+        res.should.deep.equal({ items: allRefTerms.slice(0, 1) }); // Because ..
+                             // .. `page` and `perPage` will have been set to 1.
         count.should.equal(1);
         cb();
       });

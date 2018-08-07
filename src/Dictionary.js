@@ -33,7 +33,8 @@ module.exports = class Dictionary {
 
     this.fixedTermsCache = {};
 
-    this.defaultRefTerms = ['it', 'that', 'them', 'this'];  // Must be sorted.
+    // This array must be sorted.
+    this.defaultRefTerms = ['it', 'that', 'them', 'these', 'they', 'this'];
   }
 
 
