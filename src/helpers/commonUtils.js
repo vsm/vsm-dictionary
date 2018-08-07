@@ -5,7 +5,7 @@ Contains functionality that Dictionary and/or its subclasses may share.
 module.exports = { prepTerms, prepEntry, zPropPrune };
 
 
-const {undef} = require('./util');
+const { undef } = require('./util');
 
 const perPageDefault = 20;
 const perPageMax = 100;

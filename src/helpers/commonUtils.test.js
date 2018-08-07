@@ -1,5 +1,5 @@
 const { prepTerms, prepEntry, zPropPrune } = require('./commonUtils');
-const {deepClone} = require('./util');
+const { deepClone } = require('./util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
