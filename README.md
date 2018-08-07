@@ -114,16 +114,12 @@ module.exports = class VsmDictionaryNewwwww extends VsmDictionary {
   // ...
 
 
-  getMatchesForString(str, options, cb) {
+  getEntryMatchesForString(str, options, cb) {
     var matches = [];
 
     // ...
 
-    // At the end of this string-search method, we must call the parent method:
-    super.addExtraMatchesForString(str, matches, options, (err, result) => {
-      // ...
-      cb(err, result);
-    });
+    cb(null, { items: matches });
   }
 
 }
@@ -132,14 +128,15 @@ module.exports = class VsmDictionaryNewwwww extends VsmDictionary {
 
 <div style="font-size: smaller;">
 
-(which can already be used in:
+(If the above code is placed in a file named 'VsmDictionaryNewwwww.js',
+it can already be usde in another file 'test.js':
 ```javascript
 var Dict = require('./VsmDictionaryNewwwww.js');
 var dict = new Dict();
 console.dir(dict);
 dict.getMatchesForString('42', {}, (err, res) => console.dir(res));
 ```
-).
+by running: `node test.js`).
 
 </div>
 
