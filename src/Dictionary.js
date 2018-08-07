@@ -2,7 +2,7 @@
 Design specification: see Dictionary.spec.md.
 */
 const { prepTerms, prepEntry, zPropPrune } = require('./helpers/commonUtils');
-const {deepClone, strcmp, callAsync} = require('./helpers/util');
+const { deepClone, strcmp, callAsync } = require('./helpers/util');
 const toExponential = require('to-exponential');
 
 const todoStr = 'to implement by a subclass';
@@ -32,11 +32,13 @@ module.exports = class Dictionary {
     };
 
     this.fixedTermsCache = {};
+
+    this.defaultRefTerms = ['it', 'that', 'them', 'this'];  // Must be sorted.
   }
 
 
   /**
-   * Fetches and stores (pre-loads) match-objects for the requested fixedTerms.
+   * Fetches and stores (=pre-loads) match-objects for the requested fixedTerms.
    * - The fixedTerms are represented by `idts`, which stands for (a list of):
    *   "ID plus optional Term-string" objects. So each 'idts' item uniquely
    *   identifies a fixedTerm.
@@ -103,26 +105,50 @@ module.exports = class Dictionary {
 
 
   /**
-   * Gets possible fixedTerm- and numberString match-objects for `str`, and
-   * merges them into an array of normal matches, which come from a subclass's
-   * `getMatchesForString()` (which must make a call to this function).
-   * Only has an effect for result-page 1.
-   * Always calls `cb` on the next event-loop.
+   * Returns match-objects for the given string `str`, via async callback:
+   * - normal matches are gotten from the subclass's `getMatchesForString()`;
+   * - a possible refTerm match comes from parent- or subclass's `getRefTerms()`;
+   * - fixedTerm matches are calculated based on what `loadFixedTerm()` was
+   *   already told to load, and what `options.idts` now tells to consider;
+   * - a possible number-string match is considered.
+   * All these are merged & sorted according to the spec.
    */
-  addExtraMatchesForString(str, arr, options, cb) {
-    // If the requested page > 1, add no matches.
-    if ((options.page || 1) > 1)  return callAsync(cb, null, arr);
-    arr = arr.slice(0);  // Duplicate before editing.
+  getMatchesForString(str, options, cb) {
+    this.getEntryMatchesForString(str, options, (err, res) => {
 
-    var res = this._getFixedMatchesForString(str, options);
+      // Finish on error, or if requested page > 1 (which gets no extra matches).
+      if (err || (options.page || 1) > 1)  return cb(err, res);
 
-    if (res.length) {
+      // The `res` object from `getEntryMatchesForString()` may contain more
+      // properties than just the `items` array. We will now augment this array,
+      // and then place it back into the original `res` object, which we return.
+      var arr = res.items;
+
+      this.getRefTerms({ filter: { str: [str] } }, (err, res2) => {
+        if (err)  return cb(err);
+        if (res2.items.length)  arr.unshift(this.refTermToMatch(res2.items[0]));
+
+        arr       = this._addFixedMatchesForString(str, arr, options);
+        res.items = this._addNumberMatchForString (str, arr);
+        cb(null, res);
+      });
+    });
+  }
+
+
+  /**
+   * Gets possible fixedTerm match-objects for `str`, and merges them
+   * into an array of R/S/T-type matches.
+   */
+  _addFixedMatchesForString(str, arr, options) {
+    var arr2 = this._getFixedMatchesForString(str, options);
+    if (arr2.length) {
       // Merge after one possible 'R'-type match, and before all others.
       var match = (arr[0]  &&  arr[0].type == 'R') ? arr.shift() : false;
-      arr = res.concat(arr);
+      arr = arr2.concat(arr);
       if (match)  arr.unshift(match);
 
-      // De-duplicate.
+      // Deduplicate.
       arr = arr.reduce((a, m1, i1) => {
         var i2 = arr.findIndex(m2 => m1.id == m2.id  &&  m1.str == m2.str);
         if (i1 == i2)  a.push(m1);
@@ -130,25 +156,35 @@ module.exports = class Dictionary {
       }, []);
     }
 
+    return arr;
+  }
+
+
+  /**
+   * Gets one possible numberString match-object for `str`, and adds merges it
+   * into an array of R/F/G/S/T-type matches.
+   */
+  _addNumberMatchForString(str, arr) {
     var match = this._getNumberMatchForString(str);
     if (match) {
-      // De-duplicate, then add.  I.e., if the number-match was already among
-      // the normal matches, then move that normal match to the top. Because the
-      // match from a dictionary may have more info than a generated nr-match.
+      // Deduplicate, then add.  I.e., if the number-match was already among
+      // the normal matches, then move that normal match to the top. Because
+      // the S/T-type match may have more info than a generated match.
       var j = arr.findIndex(m2 => m2.id == match.id);
       if (j >= 0)  match = arr.splice(j, 1)[0];
       arr.unshift(match);
       match.type = 'N';
-      if(!match.descr)  match.descr = this.matchDescrs.number;
+      if (!match.descr)  match.descr = this.matchDescrs.number;
     }
-    callAsync(cb, null, arr);
+
+    return arr;
   }
 
 
   /**
    * Searches `str` in `options.idts`'s linked fixedTerms's strings,
-   * and (synchronously) returns newly constructed match-objects,
-   * sorted and z-pruned (once more, on top of what `loadFixedTerms()` pruned).
+   * and returns newly constructed match-objects, sorted and
+   * z-pruned (once more, on top of what `loadFixedTerms()` pruned).
    */
   _getFixedMatchesForString(str, options) {
     // If no FT-lookup is requested, return no matches.
@@ -222,7 +258,7 @@ module.exports = class Dictionary {
 
   /**
    * Returns an Array of dictInfos, for all custom dictIDs that VsmDictionary
-   * may create in items added to `addExtraMatchesForString()`.
+   * may create in 'extra' (= non-S/T-type) match-objects.
    * + (Currently, this is only the dictInfo for number-string matches).
    * + This is a simple, synchronous function, without any filter etc `options`.
    */
@@ -269,9 +305,19 @@ module.exports = class Dictionary {
 
   getEntries(options, cb) { cb(todoStr); }
 
-  getRefTerms(cb) { cb(todoStr); }
 
+  getRefTerms(options, cb) {
+    var arr = this.defaultRefTerms;
 
-  getMatchesForString(str, options, cb) { cb(todoStr); }
+    if (options.filter && options.filter.str)  arr =
+      arr.filter(s => options.filter.str.includes(s));
+
+    var page    = Math.max(1, options.page    || 1);
+    var perPage = Math.max(1, options.perPage || arr.length);
+    var skip = (page - 1) * perPage;
+    arr = arr.slice(skip, skip + perPage);
+
+    callAsync(cb, null, { items: arr });
+  }
 
 }

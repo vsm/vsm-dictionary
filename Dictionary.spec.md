@@ -148,13 +148,20 @@ SUBCLASS 'GET'-TYPE FUNCTIONALITY
 Dictionary is a parent class for subclasses that will do most of the work.
 A subclass module represents a specific data-repository, and translates requests
 and responses with the datastore through a common interface, which e.g.
-a vsm-autocomplete can use.
+a vsm-autocomplete can use. - E.g.:
 - 'vsm-dictionary-local': implements an in-memory 'vsm-dictionary';
 - 'vsm-dictionary-xyz':
   would interface with a database-server "xyz"'s API.
   
 + Note: in the functions below, any string-sorting (such as by dictID,
   conceptID, or term-string) happens case-insensitively.
+
++ Note: all functions below must return their results via a callback `cb` that
+  is called in a truly asynchronous way.  
+  This means: in case results would not be fetched from a database but directly
+  from a memory cache (e.g. in vsm-dictionary-local), they must be returned on
+  the next event-loop (via `setTimeout(() => cb(err, res), 0);`).
+  This leads to reliable and consistent, guaranteed async behavior.
 
 Subclasses must implement the following functions:
 
@@ -233,6 +240,7 @@ Subclasses must implement the following functions:
         - `str`: {Array(String)} (opt.):
             a list of refTerm-strings; returns for all, combined in OR-mode;
         + Note: when no `filter` is given (default), returns all refTerm-strings;
+        + Note: when `str` is the empty string, returns no refTerms;
     - `page` {int}:
         which page of the paginated result is requested (starting from 1);
     - `perPage` {int}:
@@ -241,9 +249,19 @@ Subclasses must implement the following functions:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
       - `items`: {Array(String)}: a list of refTerms.
+  + Note: it is optional to implement this function in the subclass,
+    because the parent class includes a default implementation:
+    one that works with a small, in-memory list of default refTerms.  
+    (Note that there happens no mixing between these default refTerms and
+    subclass-managed refTerms; because when a subclass implements its own
+    `getRefTerms()`, it overrides and cancels this parent-class functionality
+    completely).
 
-4. `getMatchesForString(str, options, cb)`:
-  Gets "match"-objects for term(+concept)s that match the search-string.
+4. `getEntryMatchesForString(str, options, cb)`:
+  Gets "match"-objects for term(+concept)s that match the search-string. This
+  searches only for S/T-type matches that come directly from 'entry' objects.
+  (Other match types are handled by the parent class's `getMatchesForString()`,
+  see later).
   - `str`: the search-string.
   - `options`: {Object}: supports these all-optional properties:
     - `filter`: {Object}: filter-options:
@@ -274,9 +292,7 @@ Subclasses must implement the following functions:
       only those belonging to any of the subdictionaries given in `filter.dictID`
       (if any given), will be returned.
     + Returned matches are sorted by the following keys, in this order:
-      + 'R'-type matches (refTerms) are sorted before S/T-type matches;
-      + then, for any S/T type matches:  
-        if a `sort.dictID` is given, then matches that belong to any of the
+      + If a `sort.dictID` is given, then matches that belong to any of the
         subdicts given in that list, are grouped and sorted before matches
         that don't;
         + Note: the order of dictIDs within `sort.dictID` is not important;
@@ -285,10 +301,10 @@ Subclasses must implement the following functions:
       + then: within each of those one or two groups, matches with `type` 'S'
         are sorted before those with 'T' (i.e. first prefix matches, then infix
         matches);
-        + Note: while R/S/T-type match-sorting is the responsibility of
+        + Note: while S/T-type match-sorting is the responsibility of
           VsmDictionary-subclasses, the VsmDictionary parent class code will mix
-          N/F/G- type matches with these, to create the order N/R/F/G/S/T;
-          see later, under `addExtraMatchesForString()`);
+          N/R/F/G- type matches with these, to create the order N/R/F/G/S/T;
+          see later, under `getMatchesForString()`/`_addExtraMatchesForString()`);
       + then, within each S/T-group, either..:
         + alphabetically and case-insensitively by term-string;
         + then: sorted by own dictID;
@@ -304,13 +320,10 @@ Subclasses must implement the following functions:
       + `options = {filter: dictID:['D']}` returns *only* matches in subdict 'D'.
       + `options = {sort: dictID:['D']}` *prioritizes* matches from subdict 'D'
           in the returned list. Non-D-matches may still appear after D-matches.
-    + This function must call `super.addExtraMatchesForString()`, which will
-      find and mix in any N/F/G-type matches, with the R/S/T-type matches from
-      this function, `getMatchesForString()`.
     + A maximum of `perPage` S/T-type matches is returned. But in addition,
-      for a first result-page only, an R-type match, and any parent-class-made
-      N/F/G-matches may be added.
-    + Idea: (filtering matches based on the entries's `z`-object properties
+      for a first result-page only, any parent-class-made N/R/F/G-matches
+      may be added.
+    + (Idea: filtering matches based on the entries's `z`-object properties
       could be a future implementation).
 
 
@@ -319,14 +332,19 @@ OWN FUNCTIONALITY
 -----------------
 This parent class `Dictionary` defines an interface (as described above and
 later below), that subclasses should follow, for managing 'entries' and
-'match-objects' (among others).  
+'match-objects', among others.  
 In addition, it adds a layer of own functionality (that augments the main
 functionality that is left to be implemented by a subclass), for managing
-so-called 'fixedTerms' and 'number-strings' too.  
-Note: the constructor can be given an `options` object (also see later).
+so-called 'fixedTerms' and 'number-strings' too, among others.  
+<br>
+Note: the constructor can be given an `options` object (see also later).
 When a subclass's constructor is called, it must make a call to its parent
 class(=this class)'s constructor, and pass on the `options` object,
-via `super`, i.e.: `super(options)`.
+via `super`, i.e.: `super(options)`.  
+<br>
+Note: we will first discuss fixedTerms and number-strings. After that we will
+explain how match-objects for them are combined with the normal, entry-derived
+match-objects.
 
 
 ### 1. FixedTerms
@@ -335,7 +353,7 @@ via `super`, i.e.: `super(options)`.
   that is meant to appear in a VSM-template field's autocomplete list,
   even when the user has not yet typed anything. So they are one-click matches,
   which appear as soon as the field gets the webpage's focus.  
-  In addition, when the user has typed some character/s, still-matching (by
+  In addition, when the user has typed some character/s, any still-matching (by
   prefix or infix) fixedTerms will remain shown above any other normal matching
   terms.  
   &nbsp;  
@@ -382,125 +400,125 @@ via `super`, i.e.: `super(options)`.
         In order to pre-load many fixedTerms, use several `loadFixedTerms()`
         calls.
 
-+ `addExtraMatchesForString(str, array, options, cb)`:  
-  this function should be called by a subclass's `getMatchesForString()`.  
-  It looks up and can add certain extra match-objects, to the match-objects
-  that the subclass already found.  
-  Here we first discuss the addition of match-objects from `fixedTermsCache`;
-  (the addition of match-objects for number-strings will be discussed after this).
-    - `str`: the search-string;
-    - `array`: the list of sorted match-objects, already found by the subclass's
-        `getMatchesForString()`;
-    - `options`: {Object}: supports these all-optional props:
-        + Note: there are no filtering, sorting, or pagination options here;
-        - `z`: {true|Array(String)}:  
-            will include full, partial, or no z-object; as described for the
-          `options.z` of `getEntries()`;
-        - `idts`: {Array(Object)}:  
-            a selection of fixedTerms, represented by a conceptID + optional
-            term, as described for the `options.idts` of `loadFixedTerms()`;
-        - `page` {int}:  
-            is used to decide if fixedTerm-matches should be added, because they
-            will only be added to page 1 of a possibly paginated result;
-            default is `1`.
-    - `cb`: {Function}: callback with arguments:
-      - `err`: {null|String|Object}
-      - `array`: {Array(Object)}:  
-        a merged, sorted list of the given match-objects plus any new-found
-        extra ones.
-    + Notes:
-      + Only fixedTerms that are in `options.idts` *and* already pre-loaded in
-        `fixedTermsCache` are considered. From those, only those with `str` as
-        a prefix or infix will yield an extra match-object, with type F/G resp.
-      + If `str` is empty, then the entire list `options.idts` is considered,
-        to find and add corresponding match-objects from the fixedTerm-cache.
-      + `options.z` works on the z-objects _as stored by `loadFixedTerms()`_,
-        so these may already be pre-pruned z-objects.
-      + + It sorts 'F'-type matches before 'G'-type matches, and then
-          case-insensitively according to term-string, then dictID, then
-          conceptID.
-        + It adds F/G-type matches into (a shallow clone of) the given `array`,
-          between the one possible R-type match, and the many possible S/T-type
-          matches; this results in the order: R-F-G-S-T.
-        + If a fixedTerm-match is a duplicate of a normal match (on page 1),
-          then the normal match will be removed.
-      + + Extra matches are only searched and added for the first page of
-          possibly paginated results.
-        + An `options.perPage` will be ignored. So the extra-added matches may
-          cause that the subclass's `getMatchesForString()` ends up returning
-          more than `perPage` matches, only for the first page. (But still only
-          a maximum of `perPage` S/T-type matches).
-      + Even though this function currently uses only synchronous operations,
-        its interface is asynchronous (i.e. with a `cb()`).  
-        This is to prepare for future extra code that may use some async lookup,
-        and it is also consistent with subclasses's `getMatchesForString()`
-        async interface. So, it calls back on the next event-loop for consistent,
-        guaranteed async behavior.
-
 
 ### 2. Number-strings
 
 + Numbers can be 'concepts' too in a VSM-sentence. But no dictionary can
   store all possible or necessary numbers beforehand.  
-  So to support VSM-autocomplete, `Dictionary.addExtraMatchesForString()` will
-  also detect strings that represent a numeric value. It will generate an ID
-  for the value on-the-fly, and serve a match-object for it.  
+  So to support VSM-autocomplete, a VsmDictionary will also detect strings that
+  represent a numeric value. It will generate a unique, value-base ID for it,
+  on-the-fly, and serve a match-object for it.  
   This is a common functionality for any `Dictionary` implementation, so this
   happens in the parent class.
-+ The generated ID is a standardized exponential notation, which maps different
-  strings that represent the same value, onto the same ID. A prefix is added too.
-  + E.g. it maps both '105' and '0.105E3' onto the same ID: '00:1.05e+2'.
-    (the prefix here is '00:', and both numbers equal '1.05e+2').
-  + For strings representable as a 64-bit number in JavaScript, this corresponds
-    to a prefix plus the result of `Number(str).toExponential()`. And for
-    higher-precision numbers (many decimals), and for very large or small
-    numbers (> 64-bit exponent), the ID is also generated correctly,
-    using the module [`to-exponential`](https://github.com/stcruy/to-exponential).
-+ The prefix '00:' represents an implicit 'sub-dictionary of numbers'.  
-  This subdictionary's dictID and prefix are set to default values,
-  but they can be changed by giving the `options` object (given to the
-  `Dictionary` constructor) a `numberMatchConfig`-object property, stored as:  
-    `Dictionary.numberMatchConfig` {false|Object}:  
-    + If `false`, then the addition of number-string match-objects is
-      deactivated.
-      + So, `new DictionaryX({numberMatchConfig: false})` would create a
-        subclass `DictionaryX` that does not generate number-string matches.
-    + If an Object, then it has properties:
-      - `dictID`: {String}:
-            is used as the `dictID` for a generated number-string match-object;
-      - `conceptIDPrefix`: {String}:
-            is used as prefix (before the standard-exponential-form part), for
-            the generated conceptID.
-+ + A number-string match is only considered for the first results-page (as is
-    also the case with fixedTerms).
-  + `Dictionary.addExtraMatchesForString()` gives any number-string match-object
-    the type 'N', and merges it with any other match-objects, in the order:
-    N-R-F-G-S-T.
-  + If a number-string match is a duplicate of a normal match returned by the
-    subclass (so, if that number was already stored as a concept in the
-    dictionary, i.e. with same conceptID), then the normal match is used instead
-    of the generated one. Because it may be more informative than the generated
-    one (e.g. by having extra terms like 'twelve' or 'dozen' for '12'). It is
-    also moved to the top of the matches-list, and it gets its `type` set to 'N'.
-    <br><br>
+
+  + The generated ID is a standardized exponential notation, which maps
+    different strings that represent the same value, onto the same ID. A prefix
+    is added too.
+    + E.g. it maps both '105' and '0.105E3' onto the same ID: '00:1.05e+2'.
+      (the prefix here is '00:', and both numbers equal '1.05e+2').
+    + For strings representable as a 64-bit number in JavaScript, this
+      corresponds to a prefix plus the result of `Number(str).toExponential()`.
+      And for higher-precision numbers (many decimals), and for very large or
+      small numbers (> 64-bit exponent), the ID is also generated correctly,
+      using the module
+      [`to-exponential`](https://github.com/stcruy/to-exponential).
+  + The prefix '00:' represents an _implicit 'sub-dictionary of numbers'_.  
+    So this implicit subdictionary must have also a 'dictID' identifier.  
+    Its dictID and prefix are set to default values, but these can be changed
+    by specifying them in `options.numberMatchConfig` (in the `options` given to
+    the `Dictionary` constructor). This is then stored as:  
+      `Dictionary.numberMatchConfig` {false|Object}:  
+      + If `false`, then the addition of number-string match-objects is
+        deactivated.
+        + So, `new DictionaryX({numberMatchConfig: false})` would create a
+          subclass `DictionaryX` that does not generate number-string matches.
+      + If an Object, then it has properties:
+        - `dictID`: {String}:
+              is used as the `dictID` for a generated number-string match-object;
+        - `conceptIDPrefix`: {String} (default: `'00:'`):
+              is used as prefix (before the standard-exponential-form part), for
+              the generated conceptID.
 + Because the above introduces a new dictID, we need a function
   that can provide a dictInfo-object for it:  
   `getExtraDictInfos()`:  
-  + Returns an Array of dictInfos, for all the custom dictIDs that VsmDictionary
-    can create, in items that it may add via `addExtraMatchesForString()`.  
+  + Returns an Array of dictInfos, for all the custom dictIDs that a
+    VsmDictionary can create.
     Currently, this is only the dictInfo for number-string matches.
-  + Note: This is just a 'getExtraDictInfos', not a 'addExtraDictInfos'.  
-    + Because, while `addExtraMatchesForString()` needs to merge its results
-      into a list that should be N/R/etc-sorted for use in an autocomplete,
-      no result-merging is needed here.  
-    + So subclasses do not need to call a 'addExtraDictInfos' in their
-      `getDictInfos()`.  
-      So their spec can be kept nice and narrow, to manage only the
-      direct Create/Read/Update/Delete, of their own, stored dictInfos.  
-      (Unlike getMatchesForString, which manages a derived result (match-objects
-      are derived from stored entries), in which the parent class may assist).
-    + Instead, code that uses a VsmDictionary needs to make the extra call to 
-      `getExtraDictInfos()` to get dictInfos for number-string/etc matches.
+  + So, code that uses a VsmDictionary, and that needs to load dictInfos
+    for any possibly occurring dictID, needs to call both (the subclass's)
+    `getDictInfos()` (async), and (the parent class's) `getExtraDictInfos()`
+    (sync). The latter returns the dictInfo for number-string matches,
+    (and in future implementations perhaps more).
+
+
+### 3. Combining all match-objects
+
++ `getMatchesForString(str, options, cb)`:  
+  This is the function that retrieves all possible types of match-objects
+  from a VsmDictionary, for a given `str`. It is this function that
+  'vsm-autocomplete' will call.
+
+  Arguments:
+  - Same as defined for the subclass's `getEntryMatchesForString()`.
+  - `options` may have additional properties, which are discussed further below.
+
+  This function:
+    + calls the subclass's `getEntryMatchesForString()` to get normal, S/T-type
+      match-objects;
+    + calls `getRefTerms()` to get a possible matching refTerm, and builds a
+      match-object around it;
+    + searches in the pre-loaded 'fixedTerms', for any matches that it is
+      currently told to consider (according to `options` (see below));
+    + considers if a number-string match-object should be built.
+    + Finally, it merges/edits and sorts this list of collected match-objects.
+
+  The 'extra', non-S/T-type matches are considered only for the **first** page
+  of possibly paginated results (i.e. with `options.page` equal to 1,
+  or omitted).  
+  Note: since `options.perPage` pertains to S/T-type matches only, the extra
+  matches may cause that `getMatchesForString()` returns more than `perPage`
+  matches in total, for the first page only.  
+  <br>
+  The addition of some non-S/T match-objects is elaborated below:
+
++ Addition of match-objects from `fixedTermsCache`:  
+  + It will consider the following `options` props:
+    - `options.z`: as in `getEntryMatchesForString()`;
+    - `options.idts`: {Array(Object)}:  
+        a selection of fixedTerms, represented by a conceptID + optional term,
+        in the same format as the `options.idts` of `loadFixedTerms()`;
+  + Only fixedTerms that are in `options.idts` *and* already pre-loaded in
+    `fixedTermsCache` are considered.
+    + From those, only those with `str` as a prefix or infix will yield an
+      extra match-object, with type 'F' or 'G' respectively.
+    + If `str` is empty, then the entire given list `options.idts` is considered,
+      to find and add corresponding match-objects from the fixedTerm-cache.
+  + `options.z` works on the z-objects _as stored by `loadFixedTerms()`_,
+    so these may already be pre-pruned z-objects.
+
++ Addition of a match-object for a number-string:
+  + A number-string match-object gets the type 'N'.
+
++ Merging and sorting all collected match-objects:
+  + It sorts a possible 'N'-type (number-string) match on top.
+    + If a number-string match is a duplicate of a normal match returned by the
+      subclass (so, if that number was already stored as a concept in the
+      dictionary, i.e. with same conceptID), then the normal match is used
+      instead of the generated one.
+      Because it may be more informative than the generated one (e.g. '12' may
+      have extra terms like 'twelve' or 'dozen').
+      That normal match is then moved to the top of the matches-list, and
+      gets its `type` set to 'N'.
+  + Next, it puts a possible 'R'-type (refTerm) match.
+  + Next, it puts 'F'/'G'-type (fixedTerm) matches. Hereby:
+    + it sorts 'F'-type (prefix) matches before 'G'-type (infix) matches,
+      and then case-insensitively according to term-string, then dictID, 
+      then conceptID;
+    + if a fixedTerm-match is a duplicate of a normal match, then the
+      normal match will be removed.
+  + Next, it puts the (remaining) normal, 'S'/'T'-type matches from the subclass,
+    leaving them ordered as received from the subclass.
+  + So match-objects are ordered overall by type: N-R-F-G-S-T.
 
 
 &nbsp;  
@@ -646,7 +664,7 @@ Subclasses could implement these functions, if the underlying storage allows:
     + Note that an entry's `id` can not be changed.
 
 
-3. There is no `updateRefTerm()` function, because refTerms are not changeable
+3. There is no `updateRefTerm()` function, because refTerms are not editable
   objects.
 
 

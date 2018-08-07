@@ -1,5 +1,5 @@
 const Dictionary = require('./Dictionary');
-const { deepClone } = require('./helpers/util');
+const { deepClone, callAsync } = require('./helpers/util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
@@ -275,10 +275,80 @@ describe('Dictionary.js', function() {
   });
 
 
-  describe('addExtraMatchesForString()', function() {
+  describe('getRefTerms(), default implementation', function() {
+    var allRefTerms = ['it', 'this', 'that', 'them'].sort();
+
+    it('gets for one String, returned via a truly-asynchronous ' +
+      'callback', function(cb) {
+      var count = 0;
+      dict.getRefTerms({ filter: { str: ['that'] } }, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal({ items: ['that'] });
+        cb();
+      });
+    });
+    it('gets for several Strings, and sorts', function(cb) {
+      var count = 0;
+      dict.getRefTerms({ filter: { str: ['this', 'it'] } }, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal({ items: ['it', 'this'] });
+        cb();
+      });
+    });
+    it('gets all refTerms', function(cb) {
+      var count = 0;
+      dict.getRefTerms({}, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal({ items: allRefTerms });
+        count.should.equal(1);
+        cb();
+      });
+      count = 1;
+    });
+    it('does not return anything for the empty string', function(cb) {
+      var count = 0;
+      dict.getRefTerms({ filter: { str: [''] } }, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal({ items: [] });
+        count.should.equal(1);
+        cb();
+      });
+      count = 1;
+    });
+    it('applies the options `page` and `perPage`', function(cb) {
+      var count = 0;
+      dict.getRefTerms({ page: 2, perPage: 2 }, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal({ items: allRefTerms.slice(2, 4) });
+        count.should.equal(1);
+        cb();
+      });
+      count = 1;
+    });
+    it('corrects invalid `page` and `perPage` values', function(cb) {
+      var count = 0;
+      dict.getRefTerms({ page: -5, perPage: -5 }, (err, res) => {
+        expect(err).to.equal(null);
+        res.should.deep.equal({ items: ['it'] }); // Because page = perPage = 1.
+        count.should.equal(1);
+        cb();
+      });
+      count = 1;
+    });
+  });
+
+
+  describe('getMatchesForString()', function() {
+    var ems;  // Each test can set this, to say which entry-matches
+              // the mock `getEntryMatchesForString()` should return.
     before(function(cb) {
       dict = new Dictionary();
       addMockGetEntries(dict);
+      dict.getEntryMatchesForString = (str, options, cb) => {  // 2nd mock func.
+        callAsync(cb, null, { items: deepClone(ems) });  // We clone `ems` ..
+                   // .. because getMatchesForString() may change it, deeply!
+      }
+
       // Fill the cache like in the _getFixedMatchesForString() test-suite.
       dict.loadFixedTerms([{id:'a'}], {z: ['b']}, () => {
         dict.loadFixedTerms(
@@ -287,11 +357,11 @@ describe('Dictionary.js', function() {
       cnt = 0;
     });
 
+
     it('adds fixedTerm-matches into a given array, ' +
       'after one refTerm and before normal matches, and deduplicates based ' +
       'on equal `id` and `str` (keeping the fixedTerm-match)', function(cb) {
-      var ms = [  // = Matches that would be returned by a subclass.
-        { id:'',  dictID:'',  str:'rt', type:'R' },
+      ems = [  // = Matches that would be returned by a subclass.
         { id:'x', dictID:'X', str:'x9', type:'S' },
         { id:'c', dictID:'X', str:'c2', type:'S' }, // <-- this one will be a ..
         { id:'y', dictID:'X', str:'y9', type:'T' },      // fixedTerm-match too.
@@ -300,12 +370,11 @@ describe('Dictionary.js', function() {
         { id:'c', str:'c2' },
         { id:'a' }
         ];
-      dict.addExtraMatchesForString('', ms, {idts}, (err, res) => {
+      dict.getMatchesForString('', {idts}, (err, res) => {
         expect(err).to.equal(null);
         var termsA = [{str:'a1'}, {str:'a2'}];
         var termsC = [{str:'c1'}, {str:'c2'}];
-        res.should.deep.equal([
-          { id:'',  dictID:'',  str:'rt', type:'R' },
+        res.items.should.deep.equal([
           { id:'a', dictID:'X', str:'a1', type:'F', terms:termsA, z:z2 },
           { id:'c', dictID:'X', str:'c2', type:'F', terms:termsC, z },
           { id:'x', dictID:'X', str:'x9', type:'S' },
@@ -319,16 +388,17 @@ describe('Dictionary.js', function() {
 
     it('does not add matches, nor deduplicates, ' +
       'for a result-page 2', function(cb) {
-      var ms = [
-        { id:'c', dictID:'X', str:'c2', type:'S' },  // == 3rd one in prev test.
+      ems = [
+        { id:'c', dictID:'X', str:'c2', type:'S' },  // == 2nd one in prev test.
       ];
       var options = {
         idts: [{id:'c', str:'c2'}, {id:'a'}],  // Same as in previous test.
-        perPage: 1, page: 2                    // Different from previous test.
+        page: 2                                // Different from previous test.
       };
-      dict.addExtraMatchesForString('', ms, options, (err, res) => {
+      dict.getMatchesForString('', options, (err, res) => {
         expect(err).to.equal(null);
-        res.should.deep.equal([
+        // Note that our mock `getEntryMatches..()` uses same `ems` for page 2!
+        res.items.should.deep.equal([
           { id:'c', dictID:'X', str:'c2', type:'S' },
         ]);
         cnt.should.equal(1);
@@ -338,12 +408,12 @@ describe('Dictionary.js', function() {
     });
 
     it('adds a number-string match-object in front', function(cb) {
-      var ms = [
+      ems = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
       ];
-      dict.addExtraMatchesForString('10.5', ms, {}, (err, res) => {
+      dict.getMatchesForString('10.5', {}, (err, res) => {
         expect(err).to.equal(null);
-        res.should.deep.equal([
+        res.items.should.deep.equal([
           { id:'00:1.05e+1', dictID:'00', str: '10.5', descr: 'number',
             type:'N' },
           { id:'c', dictID:'X', str:'c2', type:'S' },
@@ -354,22 +424,21 @@ describe('Dictionary.js', function() {
       cnt = 1;
     });
 
-    it('does not add a number-match if the subclass already returned a ' +
+    it('does not add a new number-match if the subclass already returned a ' +
       '(typically more informative) match for it;\n        ' +
       'but moves that match to the top, ' +
       'and changes its `type` to \'N\'', function(cb) {
-      var ms = [
+      ems = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
         { id:'00:1.2e+1', dictID:'00', str:'12', descr:'the amount of twelve',
           terms:[{str:'12'}, {str:'twelve'}, {str:'dozen'}], type:'S'
         }
       ];
-      var msArg = deepClone(ms); // Because addExtra..() changes the given array.
-      dict.addExtraMatchesForString('12', msArg, {}, (err, res) => {
+      dict.getMatchesForString('12', {}, (err, res) => {
         expect(err).to.equal(null);
-        res.should.deep.equal([
-          Object.assign({}, ms[1], { type: 'N' } ),  // == match-type --> 'N'.
-          ms[0]
+        res.items.should.deep.equal([
+          Object.assign({}, ems[1], {type: 'N'}),  // == match-type --> 'N'.
+          ems[0]
         ]);
         cnt.should.equal(1);
         cb();
@@ -378,19 +447,37 @@ describe('Dictionary.js', function() {
     });
 
     it('in the above case, it fills an empty `descr`', function(cb) {
-      var ms = [
+      ems = [
         { id:'00:1.2e+1', dictID:'00', str:'12', terms:[{str:'12'}], type:'S' }
       ];
-      dict.addExtraMatchesForString('12', deepClone(ms), {}, (err, res) => {
+      dict.getMatchesForString('12', {}, (err, res) => {
         expect(err).to.equal(null);
-        res.should.deep.equal([
-          Object.assign({}, ms[0],
+        res.items.should.deep.equal([
+          Object.assign({}, ems[0],
             { type: 'N',
               descr: 'number' }  // == adds a default `descr` for match-type N.
           ),
         ]);
+        cnt.should.equal(1);
         cb();
       });
+      cnt = 1;
+    });
+
+    it('adds a refTerm match-object in front', function(cb) {
+      ems = [
+        { id:'c', dictID:'X', str:'c2', type:'S' },
+      ];
+      dict.getMatchesForString('it', {}, (err, res) => {
+        expect(err).to.equal(null);
+        res.items.should.deep.equal([
+          { id:'', dictID:'', str: 'it', descr: 'referring term', type:'R' },
+          { id:'c', dictID:'X', str:'c2', type:'S' },
+        ]);
+        cnt.should.equal(1);
+        cb();
+      });
+      cnt = 1;
     });
   });
 
