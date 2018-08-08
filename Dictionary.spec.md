@@ -392,6 +392,12 @@ match-objects.
         conceptID, a newline, and (if present) the `idts`-item's term-string.
     + Note: for any `idts`-item for which no entry was returned (so there was no
       entry with that `id`), no item is added to the cache.
+    + Note: the cache stores only one version of a fixedTerm, regardless of how
+      it may have been z-pruned.  It stores fixedTerms by 'id+str' cache-key,
+      (not by id+str+zOptions).  
+      This is because we assume that entries from a particular subdictionary
+      will always be z-pruned in the same way. So there will be no change in
+      how a particular entry is z-pruned/-requested.
     - `cb`: {Function}: callback with argument:
       - `err`: {null|String|Object}:  
         an error will be generated if some maximum number of requested items was
