@@ -310,7 +310,7 @@ module.exports = class Dictionary {
   getRefTerms(options, cb) {
     var arr = this.defaultRefTerms;
 
-    if (options.filter && options.filter.str)  arr =
+    if (options.filter && options.filter.str)  arr =  // `str`: {Array(String)}.
       arr.filter(s => options.filter.str.includes(s));
 
     var page    = Math.max(1, options.page    || 1);
