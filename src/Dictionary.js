@@ -8,6 +8,7 @@ const toExponential = require('to-exponential');
 const todoStr = 'to implement by a subclass';
 
 
+
 module.exports = class Dictionary {
 
   constructor(options) {
@@ -308,16 +309,22 @@ module.exports = class Dictionary {
 
 
   getRefTerms(options, cb) {
-    var arr = this.defaultRefTerms;
+    this._getRefTermsFromSortedArray(this.defaultRefTerms, options, cb);
+  }
 
-    if (options.filter && options.filter.str)  arr =  // `str`: {Array(String)}.
+
+  /**
+   * Resolves a `getRefTerms()` call, based on the given array of refTerms.
+   * This is a separate function, so that 'vsm-dictionary-cacher' can use it too.
+   */
+  _getRefTermsFromSortedArray(arr, options, cb) {
+    if (options.filter && options.filter.str)  arr =  // `.str`: {Array(String)}.
       arr.filter(s => options.filter.str.includes(s));
 
     var page    = Math.max(1, options.page    || 1);
     var perPage = Math.max(1, options.perPage || arr.length);
     var skip = (page - 1) * perPage;
     arr = arr.slice(skip, skip + perPage);
-
     callAsync(cb, null, { items: arr });
   }
 
