@@ -248,7 +248,7 @@ Subclasses must implement the following functions:
   - `cb`: {Function}: callback with arguments:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
-      - `items`: {Array(String)}: a list of refTerms.
+      - `items`: {Array(String)}: a list of refTerms. This list must be sorted.
   + Note: it is optional to implement this function in the subclass,
     because the parent class includes a default implementation:
     one that works with a small, in-memory list of default refTerms.  
