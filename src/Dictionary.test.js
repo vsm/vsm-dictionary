@@ -5,7 +5,9 @@ const expect = chai.expect;
 
 
 describe('Dictionary.js', function() {
-  var dict, cnt, geCallCount;
+  var dict;
+  var count;
+  var geCallCount;
   var z  = {a: 1, b: 2};
   var z2 = {      b: 2}; // Pruned version of `z`, having only the `b`-property.
 
@@ -67,7 +69,7 @@ describe('Dictionary.js', function() {
     beforeEach(function() {
       dict = new Dictionary();  // This clears the cache before each test.
       addMockGetEntries(dict);
-      cnt = 0;  // We will test all calls for true asynchronicity as well.
+      count = 0;  // We will test all calls for true asynchronicity as well.
     });
 
     it('has an empty `fixedTermsCache` at start', function() {
@@ -80,10 +82,10 @@ describe('Dictionary.js', function() {
         expect(err).to.equal(null);
         Object.keys(dict.fixedTermsCache).length.should.equal(0); // Unchanged.
         geCallCount.should.equal(0);  // Test that `getEntries()` wasn't called.
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('adds no matches to `fixedTermsCache` for absent IDs', function(cb) {
@@ -91,10 +93,10 @@ describe('Dictionary.js', function() {
       dict.loadFixedTerms(idts, {}, err => {
         expect(err).to.equal(null);
         dict.fixedTermsCache.should.deep.equal({});
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('adds match-objects to `fixedTermsCache` for one ID, and passes on ' +
@@ -107,10 +109,10 @@ describe('Dictionary.js', function() {
                    str: 'a1', z: z2, type: 'F' },
         });
         geCallCount.should.equal(1);  // Test that our `geCallCount` works.
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('adds match-objects to `fixedTermsCache` for multiple ID/terms: ' +
@@ -124,10 +126,10 @@ describe('Dictionary.js', function() {
           'c\nc2': { id:'c', dictID:'X', terms:[{str:'c1'}, {str:'c2'}],
                      str:'c2', type:'F', z },
         });
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('adds a match-object to `fixedTermsCache` for an ID + an absent term, ' +
@@ -139,10 +141,10 @@ describe('Dictionary.js', function() {
           'd\nd9': { id:'d', dictID:'X', terms:[{str:'d1'}, {str:'d2'}],
                      str:'d1', type:'F', z },
         });
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('can forward an error from getEntries()', function(cb) {
@@ -150,10 +152,10 @@ describe('Dictionary.js', function() {
 
       dict.loadFixedTerms([{id:''}], {}, err => {
         err.should.equal('err1');
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
   });
 
@@ -171,7 +173,7 @@ describe('Dictionary.js', function() {
         dict.loadFixedTerms(
           [{id:'b'}, {id:'c', str:'c2'}, {id:'d', str:'d1'}], {}, cb);
       });
-      cnt = 0;
+      count = 0;
     });
 
     it('for an empty string, returns all match-objects whose ' +
@@ -355,7 +357,7 @@ describe('Dictionary.js', function() {
         dict.loadFixedTerms(
           [{id:'b'}, {id:'c', str:'c2'}, {id:'d', str:'d1'}], {}, cb);
       });
-      cnt = 0;
+      count = 0;
     });
 
 
@@ -381,10 +383,10 @@ describe('Dictionary.js', function() {
           { id:'x', dictID:'X', str:'x9', type:'S' },
           { id:'y', dictID:'X', str:'y9', type:'T' },
         ]);
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('does not add matches, nor deduplicates, ' +
@@ -402,10 +404,10 @@ describe('Dictionary.js', function() {
         res.items.should.deep.equal([
           { id:'c', dictID:'X', str:'c2', type:'S' },
         ]);
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('adds a number-string match-object in front', function(cb) {
@@ -419,10 +421,10 @@ describe('Dictionary.js', function() {
             type:'N' },
           { id:'c', dictID:'X', str:'c2', type:'S' },
         ]);
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('does not add a new number-match if the subclass already returned a ' +
@@ -441,10 +443,10 @@ describe('Dictionary.js', function() {
           Object.assign({}, ems[1], {type: 'N'}),  // == match-type --> 'N'.
           ems[0]
         ]);
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('in the above case, it fills an empty `descr`', function(cb) {
@@ -459,10 +461,10 @@ describe('Dictionary.js', function() {
               descr: 'number' }  // == adds a default `descr` for match-type N.
           ),
         ]);
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
 
     it('adds a refTerm match-object in front', function(cb) {
@@ -475,10 +477,10 @@ describe('Dictionary.js', function() {
           { id:'', dictID:'', str: 'it', descr: 'referring term', type:'R' },
           { id:'c', dictID:'X', str:'c2', type:'S' },
         ]);
-        cnt.should.equal(1);
+        count.should.equal(1);
         cb();
       });
-      cnt = 1;
+      count = 1;
     });
   });
 
