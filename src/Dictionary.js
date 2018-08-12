@@ -114,27 +114,53 @@ module.exports = class Dictionary {
    *   already told to load, and what `options.idts` now tells to consider;
    * - a possible number-string match is considered.
    * All these are merged & sorted according to the spec.
+   * Note: all necessary asynchronous calls happen in parallel.
    */
   getMatchesForString(str, options, cb) {
-    this.getEntryMatchesForString(str, options, (err, res) => {
+    // 0.) If requested page > 1, get entry-matches but add no extra matches.
+    if ((options.page || 1) > 1) {
+      return this.getEntryMatchesForString(str, options, cb);
+    }
 
-      // Finish on error, or if requested page > 1 (which gets no extra matches).
-      if (err || (options.page || 1) > 1)  return cb(err, res);
+    // 1.) First, we launch the asynchronous calls in parallel.
+    var errs = [];
+    var ress = [];
+    var cbCount = 0;
+    var self = this;
+
+    this.getEntryMatchesForString(str, options,
+      (err, res) => acceptResult(0, err, res));
+
+    this.getRefTerms({ filter: { str: [str] } },
+      (err, res) => acceptResult(1, err, res));
+
+    function acceptResult(resultNr, err, res) {
+      errs[resultNr] = err;
+      ress[resultNr] = res;
+      cbCount++;
+      if (cbCount == 2)  gotAllAsyncResults();
+    }
+
+    // 2.) Second, we assemble the async results, and add some
+    //     synchronously-computed extra ones.
+    function gotAllAsyncResults() {
+      var err = errs.find(e => e);  // Find first error, if any.
+      if (err)  return cb(err);
 
       // The `res` object from `getEntryMatchesForString()` may contain more
-      // properties than just the `items` array. We will now augment this array,
+      // properties than just the `items` array. We will now augment that array,
       // and then place it back into the original `res` object, which we return.
+      var res = ress[0];
       var arr = res.items;
 
-      this.getRefTerms({ filter: { str: [str] } }, (err, res2) => {
-        if (err)  return cb(err);
-        if (res2.items.length)  arr.unshift(this.refTermToMatch(res2.items[0]));
+      if (ress[1].items.length) {  // Add a refTerm, if any.
+        arr.unshift(self.refTermToMatch(ress[1].items[0]));
+      }
 
-        arr       = this._addFixedMatchesForString(str, arr, options);
-        res.items = this._addNumberMatchForString (str, arr);
-        cb(null, res);
-      });
-    });
+      arr       = self._addFixedMatchesForString(str, arr, options);
+      res.items = self._addNumberMatchForString (str, arr);
+      cb(null, res);
+    }
   }
 
 

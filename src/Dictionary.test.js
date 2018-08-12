@@ -482,6 +482,43 @@ describe('Dictionary.js', function() {
       });
       count = 1;
     });
+
+    it('calls `getEntryMatchesForString()` and `getRefTerms()` in parallel; ' +
+       'but calls only the first for a page 2', function(cb) {
+      // We test this by adding 1 to `val` for each call to a get..() function,
+      // and adding 10 when that function calls back.
+      var val = 0;
+      class DictionarySpy extends Dictionary {
+        getRefTerms(options, cbf) {
+          val++;
+          super.getRefTerms(options, (err, res) => { // Use default parent func.
+            val += 10;
+            cbf(err, res);
+          });
+        }
+        getEntryMatchesForString(str, options, cbf) {
+          val++;
+          setTimeout(() => {  // Make a stub, required subclass function.
+            val += 10;
+            cbf(null, { items: [] });
+          }, 0);
+        }
+      }
+      dict = new DictionarySpy();
+
+      dict.getMatchesForString('', {}, (err, res) => {
+        val.should.equal(22);  // 2) At the end, both callbacks have responded.
+
+        // Part 2.
+        dict.getMatchesForString('', { page: 2 }, (err, res) => {
+          val.should.equal(33);  // 4) At very end, a callback 3 has responded.
+          cb();
+        });
+        val.should.equal(23);  // 3) At the 2nd beginning, a request 3 was made.
+
+      });
+      val.should.equal(2);  // 1) At the beginning, two requests have been made.
+    });
   });
 
 

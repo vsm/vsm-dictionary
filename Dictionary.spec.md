@@ -473,6 +473,7 @@ match-objects.
       match-objects;
     + calls `getRefTerms()` to get a possible matching refTerm, and builds a
       match-object around it;
+      + (note: it calls the above two query-functions in parallel);
     + searches in the pre-loaded 'fixedTerms', for any matches that it is
       currently told to consider (according to `options` (see below));
     + considers if a number-string match-object should be built.
