@@ -1,4 +1,4 @@
-const {deepClone, strcmp, callAsync} = require('./util');
+const { deepClone, strcmp, callAsync } = require('./util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
@@ -6,7 +6,7 @@ const expect = chai.expect;
 describe('helpers/util.js', function() {
   describe('deepClone()', function() {
     it('deep-clones, so changes on the original object ' +
-      'do not affect the clone', function() {
+       'do not affect the clone', function() {
       var x = { a: 1,  b: {c: 1} };
       var y = deepClone(x);
       y.b.c = 2;
@@ -16,8 +16,8 @@ describe('helpers/util.js', function() {
   });
 
   describe('strcmp()', function() {
-    it('returns -1;0;1 after case-insensitively comparing <;==;> strings',
-      function() {
+    it('returns -1;0;1 after case-insensitively comparing <;==;> ' +
+       'strings', function() {
       expect(strcmp('a', 'b')).to.equal(-1);
       expect(strcmp('a', 'a')).to.equal(0);
       expect(strcmp('b', 'a')).to.equal(1);

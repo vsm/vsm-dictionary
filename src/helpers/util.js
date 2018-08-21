@@ -1,4 +1,4 @@
-module.exports = {deepClone, strcmp, callAsync};
+module.exports = { deepClone, strcmp, callAsync };
 
 
 /**

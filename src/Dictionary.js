@@ -15,11 +15,11 @@ module.exports = class Dictionary {
     var opt = options || {};
     this.numberMatchConfig =
       ( opt.numberMatchConfig === false  ||  // `false` means: deactivate it.
-        typeof opt.numberMatchConfig === 'object' ) ?
-      opt.numberMatchConfig :
-      { dictID         : '00',
-        conceptIDPrefix: '00:'
-      };
+        typeof opt.numberMatchConfig === 'object'
+      ) ?
+        opt.numberMatchConfig :
+        { dictID         : '00',
+          conceptIDPrefix: '00:' };
 
     this.extraDictInfos = !this.numberMatchConfig ? [] : [
       { id: this.numberMatchConfig.dictID,
@@ -219,8 +219,8 @@ module.exports = class Dictionary {
     if (!options.idts)  return [];
 
     var arr = [];
-    var str = str.toLowerCase();
     var idts = options.idts;
+    str = str.toLowerCase();
 
     // Here we could first `.map()` the given `idts` onto match-objects from
     // `fixedTermsCache`, and then filter out those that didn't have a match.
@@ -231,8 +231,9 @@ module.exports = class Dictionary {
         var match = this.fixedTermsCache[key];
         if (!match)  return arr;  // Drop id+strs without match in the cache.
 
-        var type = match.str.toLowerCase().startsWith(str) ? 'F' :
-                   match.str.toLowerCase().includes  (str) ? 'G' : 0;
+        var type =                                          /* eslint-disable */
+          match.str.toLowerCase().startsWith(str) ? 'F' :
+          match.str.toLowerCase().includes  (str) ? 'G' : 0; /* eslint-enable */
 
         if (type)  arr.push( Object.assign( deepClone(match), {type} ) );
         return arr;
@@ -310,28 +311,28 @@ module.exports = class Dictionary {
   }
 
 
-  addDictInfos(dictInfos, cb) { cb(todoStr); }
+  addDictInfos(dictInfos, cb) { cb(todoStr) }
 
-  addEntries(entries, cb) { cb(todoStr); }
+  addEntries(entries, cb) { cb(todoStr) }
 
-  addRefTerms(refTerms, cb) { cb(todoStr); }
-
-
-  updateDictInfos(dictInfos, cb) { cb(todoStr); }
-
-  updateEntries(entries, cb) { cb(todoStr); }
+  addRefTerms(refTerms, cb) { cb(todoStr) }
 
 
-  deleteDictInfos(dictIDs, cb) { cb(todoStr); }
+  updateDictInfos(dictInfos, cb) { cb(todoStr) }
 
-  deleteEntries(conceptIDs, cb) { cb(todoStr); }
-
-  deleteRefTerms(refTerms, cb) { cb(todoStr); }
+  updateEntries(entries, cb) { cb(todoStr) }
 
 
-  getDictInfos(options, cb) { cb(todoStr); }
+  deleteDictInfos(dictIDs, cb) { cb(todoStr) }
 
-  getEntries(options, cb) { cb(todoStr); }
+  deleteEntries(conceptIDs, cb) { cb(todoStr) }
+
+  deleteRefTerms(refTerms, cb) { cb(todoStr) }
+
+
+  getDictInfos(options, cb) { cb(todoStr) }
+
+  getEntries(options, cb) { cb(todoStr) }
 
 
   getRefTerms(options, cb) {
@@ -354,4 +355,4 @@ module.exports = class Dictionary {
     callAsync(cb, null, { items: arr });
   }
 
-}
+};
