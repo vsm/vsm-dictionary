@@ -1,27 +1,9 @@
-const {undef, deepClone, strcmp, callAsync} = require('./util');
+const {deepClone, strcmp, callAsync} = require('./util');
 const chai = require('chai');  chai.should();
 const expect = chai.expect;
 
 
 describe('helpers/util.js', function() {
-  describe('undef()', function() {
-    it('returns true for `undefined`', function() {
-      expect(undef()).to.equal(true);
-      expect(undef(undefined)).to.equal(true);
-    });
-    it('returns false for many other data types', function() {
-      undef(null).should.equal(false);
-      undef('').should.equal(false);
-      undef(/a/).should.equal(false);
-      undef(true).should.equal(false);
-      undef(false).should.equal(false);
-      undef(NaN).should.equal(false);
-      undef(0).should.equal(false);
-      undef(42).should.equal(false);
-      undef(() => {}).should.equal(false);
-    });
-  });
-
   describe('deepClone()', function() {
     it('deep-clones, so changes on the original object ' +
       'do not affect the clone', function() {

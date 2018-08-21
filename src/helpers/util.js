@@ -1,12 +1,4 @@
-module.exports = {undef, deepClone, strcmp, callAsync};
-
-
-/**
- * Tells if the given variable is undefined.
- */
-function undef(x) {
-  return typeof x === 'undefined';
-}
+module.exports = {deepClone, strcmp, callAsync};
 
 
 /**

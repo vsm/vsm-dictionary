@@ -5,12 +5,6 @@ Contains functionality that Dictionary and/or its subclasses may share.
 module.exports = { prepTerms, prepEntry, zPropPrune };
 
 
-const { undef } = require('./util');
-
-const perPageDefault = 20;
-const perPageMax = 100;
-
-
 
 /**
  * Takes a single term-object, and removes any invalid properties so it has the
@@ -18,8 +12,8 @@ const perPageMax = 100;
  */
 function _prepTermObj(obj) {
   var o = {str: obj.str};  // Required property.
-  if (!undef(obj.style))  o.style = obj.style;  // Optional property.
-  if (!undef(obj.descr))  o.descr = obj.descr;  // " .
+  if (obj.style !== undefined)  o.style = obj.style;  // Optional property.
+  if (obj.descr !== undefined)  o.descr = obj.descr;  // " .
   return o;
 }
 
@@ -35,7 +29,7 @@ function prepTerms(arr) {
 
   return arr.reduce((arr2, term) => {  // Deduplicate terms, as explained above.
     for (var j = 0;  j < arr2.length;  j++) {
-      if (arr2[j].str === term.str)  { arr2[j] = term;  break; }
+      if (arr2[j].str === term.str)  { arr2[j] = term;  break }
     }
     if (j == arr2.length)  arr2.push(term);
     return arr2;
@@ -60,8 +54,8 @@ function prepEntry(entry) {
     dictID: entry.dictID,
     terms:  prepTerms(entry.terms)
   };
-  if (!undef(entry.descr))  e.descr = entry.descr;  // Optional String prop.
-  if (!undef(entry.z    ))  e.z     = entry.z; // Opt. Obj. prop: shallow-clone.
+  if (entry.descr !== undefined)  e.descr = entry.descr;  // Opt. String prop.
+  if (entry.z !== undefined)  e.z = entry.z;  // Opt. Obj. prop: shallow-clone.
   return e;
 }
 
@@ -78,10 +72,10 @@ function prepEntry(entry) {
 function zPropPrune(entries, zPropStrs = true) {
   return zPropStrs === true ? entries :
     entries.map(e => {
-      if (undef(e.z))  return e;  // Continue if `z` is empty already.
+      if (e.z === undefined)  return e;  // Continue if `z` is empty already.
       var c = Object.assign({}, e, {z: {}}); // Clone entry; make its `z` empty.
       zPropStrs.forEach(p => {
-        if (!undef(e.z[p]))  c.z[p] = e.z[p];  // Only copy requested z-props.
+        if (e.z[p] !== undefined)  c.z[p] = e.z[p];  // Copy requested z-props.
       });
       if (!Object.keys(c.z).length)  delete c.z;  // Delete `z` if it is `{}`.
       return c;
