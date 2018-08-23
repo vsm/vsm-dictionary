@@ -8,7 +8,7 @@ const expect = chai.expect;
 
 
 
-describe('Dictionary.js', function() {
+describe('Dictionary.js', () => {
   var dict;
   var count;
   var geCallCount;
@@ -16,19 +16,19 @@ describe('Dictionary.js', function() {
   var z2 = {      b: 2}; // Pruned version of `z`, having only the `b`-property.
 
 
-  describe('_idtToFTCacheKey()', function() {
+  describe('_idtToFTCacheKey()', () => {
     var dict = new Dictionary();
-    it('returns a fixedTermsCache-key for a given conceptID', function() {
+    it('returns a fixedTermsCache-key for a given conceptID', () => {
       dict._idtToFTCacheKey('CW:0115').should.equal('CW:0115\n');
     });
     it('returns a fixedTermsCache-key for a given conceptID ' +
-       'and optional term-string', function() {
+       'and optional term-string', () => {
       dict._idtToFTCacheKey('CW:0115', 'in').should.equal('CW:0115\nin');
     });
   });
 
 
-  describe('_entryToMatch()', function() {
+  describe('_entryToMatch()', () => {
     var dict = new Dictionary();
     var t = [
       {str:'a'},
@@ -37,7 +37,7 @@ describe('Dictionary.js', function() {
     var e = {id:'A:01', dictID:'A', descr:'xx', terms: t};
 
     it('returns a match-object for a given entry, term-position, ' +
-       'and match-type', function() {
+       'and match-type', () => {
       dict._entryToMatch(e, 0, 'S').should.deep.equal(
         { id:'A:01', dictID:'A', descr:'xx', str:'a', terms:t, type:'S' });
       dict._entryToMatch(e, 1, 'T').should.deep.equal(
@@ -69,19 +69,19 @@ describe('Dictionary.js', function() {
   }
 
 
-  describe('loadFixedTerms()', function() {
-    beforeEach(function() {
+  describe('loadFixedTerms()', () => {
+    beforeEach(() => {
       dict = new Dictionary();  // This clears the cache before each test.
       addMockGetEntries(dict);
       count = 0;  // We will test all calls for true asynchronicity as well.
     });
 
-    it('has an empty `fixedTermsCache` at start', function() {
+    it('has an empty `fixedTermsCache` at start', () => {
       dict.fixedTermsCache.should.deep.equal({});
     });
 
     it('works with an empty array; it does not call getEntries() then, but ' +
-       'still calls back on the next event-loop', function(cb) {
+       'still calls back on the next event-loop', cb => {
       dict.loadFixedTerms([], {}, err => {
         expect(err).to.equal(null);
         Object.keys(dict.fixedTermsCache).length.should.equal(0); // Unchanged.
@@ -92,7 +92,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('adds no matches to `fixedTermsCache` for absent IDs', function(cb) {
+    it('adds no matches to `fixedTermsCache` for absent IDs', cb => {
       var idts = [{id: ''}, {id: 'x', str: 'xx'}];
       dict.loadFixedTerms(idts, {}, err => {
         expect(err).to.equal(null);
@@ -104,7 +104,7 @@ describe('Dictionary.js', function() {
     });
 
     it('adds match-objects to `fixedTermsCache` for one ID, and passes on ' +
-       'z-object-pruning options', function(cb) {
+       'z-object-pruning options', cb => {
       var idts = [{id: 'a'}];
       dict.loadFixedTerms(idts, {z: ['b']}, err => {
         expect(err).to.equal(null);
@@ -120,7 +120,7 @@ describe('Dictionary.js', function() {
     });
 
     it('adds match-objects to `fixedTermsCache` for multiple ID/terms: ' +
-       'an ID without term, and a normal ID+term couple', function(cb) {
+       'an ID without term, and a normal ID+term couple', cb => {
       var idts = [{id: 'b'}, {id: 'c', str: 'c2'}];
       dict.loadFixedTerms(idts, {}, err => {
         expect(err).to.equal(null);
@@ -137,7 +137,7 @@ describe('Dictionary.js', function() {
     });
 
     it('adds a match-object to `fixedTermsCache` for an ID + an absent term, ' +
-       'which gets mapped onto the entry\'s first term', function(cb) {
+       'which gets mapped onto the entry\'s first term', cb => {
       var idts = [{id: 'd', str: 'd9'}];
       dict.loadFixedTerms(idts, {}, err => {
         expect(err).to.equal(null);
@@ -151,7 +151,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('makes unpaginated requests, i.e. ignores `perPage`', function(cb) {
+    it('makes unpaginated requests, i.e. ignores `perPage`', cb => {
       dict.loadFixedTerms([{id: 'a'}, {id: 'b'}], { perPage: 1 }, err => {
         expect(err).to.equal(null);
         Object.keys(dict.fixedTermsCache).length.should.equal(2);
@@ -161,7 +161,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('can forward an error from `getEntries()`', function(cb) {
+    it('can forward an error from `getEntries()`', cb => {
       dict.getEntries = (options, cb) => setTimeout(() => cb('err1'), 0);
 
       dict.loadFixedTerms([{id:''}], {}, err => {
@@ -174,8 +174,8 @@ describe('Dictionary.js', function() {
   });
 
 
-  describe('_getFixedMatchesForString()', function() {
-    before(function(cb) {
+  describe('_getFixedMatchesForString()', () => {
+    before(cb => {
       dict = new Dictionary();
       addMockGetEntries(dict);
       // Fill the cache like in the loadFixedTerms() test-suite:
@@ -192,7 +192,7 @@ describe('Dictionary.js', function() {
 
     it('for an empty string, returns all match-objects whose ' +
        'fixedTermsCache-key corresponds to an item in `idts` ID(+term)s, ' +
-       'sorted', function() {
+       'sorted', () => {
       var idts = [
         {id:'c', str:'c2'}, {id:'a'},  // : match a fixedTermsCache key exactly;
         {id:'c', str:'c1'}, {id:'c'}, {id:'d', str:'xx'}, {id:'xx'}  // : don't.
@@ -205,7 +205,7 @@ describe('Dictionary.js', function() {
       ]);
     });
 
-    it('returns match for string as prefix, and prunes z-property', function() {
+    it('returns match for string as prefix, and prunes z-property', () => {
       var idts = [ {id:'a'}, {id:'c', str:'c2'} ];
       dict._getFixedMatchesForString('a', {idts, z: []}).should.deep.equal([
         { id:'a', dictID:'X', terms:[{str:'a1'}, {str:'a2'}], str:'a1',
@@ -213,7 +213,7 @@ describe('Dictionary.js', function() {
       ]);
     });
 
-    it('returns match for string as infix, and prunes z-property', function() {
+    it('returns match for string as infix, and prunes z-property', () => {
       var idts = [ {id:'b'}, {id:'c', str:'c2'} ]; // Only match these idts.
       dict._getFixedMatchesForString('1', {idts, z: ['b']}).should.deep.equal([
         { id:'b', dictID:'X', terms:[{str:'b1'}, {str:'b2'}], str:'b1',
@@ -222,13 +222,13 @@ describe('Dictionary.js', function() {
     });
 
     it('for a string, does not return a cache-item that has a matching string' +
-       ', but that does not match an item in `options.idts`', function() {
+       ', but that does not match an item in `options.idts`', () => {
       dict._getFixedMatchesForString('b', { idts: [{id:'a'}] })
         .should.deep.equal([]);
     });
 
     it('for a string, will return a cache-item that has a matching string ' +
-       ', and that also matches an item in `options.idts`', function() {
+       ', and that also matches an item in `options.idts`', () => {
       dict._getFixedMatchesForString('b', { idts: [{id:'b'}] })
         .should.deep.equal([
           { id:'b', dictID:'X', terms:[{str:'b1'}, {str:'b2'}], str:'b1',
@@ -236,7 +236,7 @@ describe('Dictionary.js', function() {
         ]);
     });
 
-    it('matches `str` case-insensitively', function() {
+    it('matches `str` case-insensitively', () => {
       dict._getFixedMatchesForString('B', { idts: [{id:'b'}] })
         .should.deep.equal([
           { id:'b', dictID:'X', terms:[{str:'b1'}, {str:'b2'}], str:'b1',
@@ -246,15 +246,15 @@ describe('Dictionary.js', function() {
   });
 
 
-  describe('_getNumberMatchForString()', function() {
+  describe('_getNumberMatchForString()', () => {
     it('returns a match for a number, ' +
-       'under the default number-match configuration', function() {
+       'under the default number-match configuration', () => {
       dict = new Dictionary();
       dict._getNumberMatchForString('5').should.deep.equal(
         {id: '00:5e+0', dictID: '00', str: '5', descr: 'number', type: 'N'});
     });
     it('returns a match for a number, ' +
-       'using custom \'number-string\' settings', function() {
+       'using custom \'number-string\' settings', () => {
       var dict = new Dictionary(
         { numberMatchConfig: { dictID: 'XX', conceptIDPrefix: 'XX:' } }
       );
@@ -262,15 +262,15 @@ describe('Dictionary.js', function() {
         {id: 'XX:5e+0', dictID: 'XX', str: '5', descr: 'number', type: 'N'});
     });
     it('does not return a match for a number, ' +
-       'only if configured not to do so', function() {
+       'only if configured not to do so', () => {
       var dict = new Dictionary({numberMatchConfig: false});
       dict._getNumberMatchForString('5').should.equal(false);
     });
   });
 
 
-  describe('refTermToMatch()', function() {
-    it('wraps a given string into a refTerm-type match-object', function() {
+  describe('refTermToMatch()', () => {
+    it('wraps a given string into a refTerm-type match-object', () => {
       dict = new Dictionary();
       dict.refTermToMatch('abc').should.deep.equal(
         {id: '', dictID: '', str: 'abc', descr: 'referring term', type: 'R'});
@@ -278,32 +278,31 @@ describe('Dictionary.js', function() {
   });
 
 
-  describe('getExtraDictInfos()', function() {
+  describe('getExtraDictInfos()', () => {
     it('returns an array with one dictInfo, ' +
-       'under the default number-match configuration', function() {
+       'under the default number-match configuration', () => {
       dict = new Dictionary();
       dict.getExtraDictInfos().should.deep.equal([{ id: '00', name: 'Numbers'}]);
     });
     it('returns an array with one dictInfo, ' +
-       'using custom \'number-string\' settings', function() {
+       'using custom \'number-string\' settings', () => {
       var dict = new Dictionary(
         { numberMatchConfig: { dictID: 'XX', conceptIDPrefix: 'XX:' } }
       );
       dict.getExtraDictInfos().should.deep.equal([{ id: 'XX', name: 'Numbers'}]);
     });
     it('returns an empty array, ' +
-       'if configured to not return number-string matches', function() {
+       'if configured to not return number-string matches', () => {
       var dict = new Dictionary({numberMatchConfig: false});
       dict.getExtraDictInfos().should.deep.equal([]);
     });
   });
 
 
-  describe('getRefTerms(), default implementation', function() {
+  describe('getRefTerms(), default implementation', () => {
     var allRefTerms = ['it', 'this', 'that', 'they', 'these', 'them'].sort();
 
-    it('gets for one String, returned via a truly-asynchronous ' +
-       'callback', function(cb) {
+    it('gets for one String, returned via a truly-asynchronous callback', cb => {
       var count = 0;
       dict.getRefTerms({ filter: { str: ['that'] } }, (err, res) => {
         expect(err).to.equal(null);
@@ -313,7 +312,7 @@ describe('Dictionary.js', function() {
       });
       count = 1;
     });
-    it('gets for several Strings, and sorts', function(cb) {
+    it('gets for several Strings, and sorts', cb => {
       var count = 0;
       dict.getRefTerms({ filter: { str: ['this', 'it'] } }, (err, res) => {
         expect(err).to.equal(null);
@@ -323,7 +322,7 @@ describe('Dictionary.js', function() {
       });
       count = 1;
     });
-    it('gets all refTerms', function(cb) {
+    it('gets all refTerms', cb => {
       var count = 0;
       dict.getRefTerms({}, (err, res) => {
         expect(err).to.equal(null);
@@ -333,7 +332,7 @@ describe('Dictionary.js', function() {
       });
       count = 1;
     });
-    it('does not return anything for the empty string', function(cb) {
+    it('does not return anything for the empty string', cb => {
       var count = 0;
       dict.getRefTerms({ filter: { str: [''] } }, (err, res) => {
         expect(err).to.equal(null);
@@ -343,7 +342,7 @@ describe('Dictionary.js', function() {
       });
       count = 1;
     });
-    it('applies the options `page` and `perPage`', function(cb) {
+    it('applies the options `page` and `perPage`', cb => {
       var count = 0;
       dict.getRefTerms({ page: 2, perPage: 2 }, (err, res) => {
         expect(err).to.equal(null);
@@ -353,7 +352,7 @@ describe('Dictionary.js', function() {
       });
       count = 1;
     });
-    it('corrects invalid `page` and `perPage` values', function(cb) {
+    it('corrects invalid `page` and `perPage` values', cb => {
       var count = 0;
       dict.getRefTerms({ page: -5, perPage: -5 }, (err, res) => {
         expect(err).to.equal(null);
@@ -367,10 +366,10 @@ describe('Dictionary.js', function() {
   });
 
 
-  describe('getMatchesForString()', function() {
+  describe('getMatchesForString()', () => {
     var ems;  // Each test can set this, to say which entry-matches
     //        // the mock `getEntryMatchesForString()` should return.
-    before(function(cb) {
+    before(cb => {
       dict = new Dictionary();
       addMockGetEntries(dict);
       dict.getEntryMatchesForString = (str, options, cb) => {  // 2nd mock func.
@@ -389,7 +388,7 @@ describe('Dictionary.js', function() {
 
     it('adds fixedTerm-matches into a given array, ' +
        'after one refTerm and before normal matches, and deduplicates based ' +
-       'on equal `id` and `str` (keeping the fixedTerm-match)', function(cb) {
+       'on equal `id` and `str` (keeping the fixedTerm-match)', cb => {
       ems = [  // = Matches that would be returned by a subclass.
         { id:'x', dictID:'X', str:'x9', type:'S' },
         { id:'c', dictID:'X', str:'c2', type:'S' }, // <-- this one will be a ..
@@ -415,8 +414,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('does not add matches, nor deduplicates, ' +
-       'for a result-page 2', function(cb) {
+    it('does not add matches, nor deduplicates, for a result-page 2', cb => {
       ems = [
         { id:'c', dictID:'X', str:'c2', type:'S' },  // == 2nd one in prev test.
       ];
@@ -436,7 +434,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('adds a number-string match-object in front', function(cb) {
+    it('adds a number-string match-object in front', cb => {
       ems = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
       ];
@@ -456,7 +454,7 @@ describe('Dictionary.js', function() {
     it('does not add a new number-match if the subclass already returned a ' +
        '(typically more informative) match for it;\n        ' +
        'but moves that match to the top, ' +
-       'and changes its `type` to \'N\'', function(cb) {
+       'and changes its `type` to \'N\'', cb => {
       ems = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
         { id:'00:1.2e+1', dictID:'00', str:'12', descr:'the amount of twelve',
@@ -475,7 +473,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('in the above case, it fills an empty `descr`', function(cb) {
+    it('in the above case, it fills an empty `descr`', cb => {
       ems = [
         { id:'00:1.2e+1', dictID:'00', str:'12', terms:[{str:'12'}], type:'S' }
       ];
@@ -493,7 +491,7 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('adds a refTerm match-object in front', function(cb) {
+    it('adds a refTerm match-object in front', cb => {
       ems = [
         { id:'c', dictID:'X', str:'c2', type:'S' },
       ];
@@ -510,7 +508,7 @@ describe('Dictionary.js', function() {
     });
 
     it('calls `getEntryMatchesForString()` and `getRefTerms()` in parallel; ' +
-       'but calls only the first for a page 2', function(cb) {
+       'but calls only the first for a page 2', cb => {
       // We test this by adding 1 to `val` for each call to a get..() function,
       // and adding 10 when that function calls back.
       var val = 0;
@@ -548,23 +546,23 @@ describe('Dictionary.js', function() {
   });
 
 
-  describe('static methods', function() {
+  describe('static methods', () => {
     // Here we just test that these functions are hooked up as static methods.
     // Extended tests for them are defined in 'commonUtils.test.js'.
 
-    it('exposes prepTerms()', function() {
+    it('exposes prepTerms()', () => {
       Dictionary.prepTerms([ {str: 'abc', q: 1} ]).should.deep.equal(
         [ {str: 'abc'} ]
       );
     });
-    it('exposes prepEntry()', function() {
+    it('exposes prepEntry()', () => {
       Dictionary.prepEntry(
         { id:'A:01', dictID:'A', terms: [ {str: 'abc'} ], q: 1 }
       ).should.deep.equal(
         { id:'A:01', dictID:'A', terms: [ {str: 'abc'} ] }
       );
     });
-    it('exposes zPropPrune()', function() {
+    it('exposes zPropPrune()', () => {
       Dictionary.zPropPrune([ {z: {a: 1, b: 2, c: 3}, X: 9} ], ['a'])
         .should.deep.equal( [ {z: {a: 1}, X: 9} ] );
     });
