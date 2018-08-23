@@ -151,7 +151,17 @@ describe('Dictionary.js', function() {
       count = 1;
     });
 
-    it('can forward an error from getEntries()', function(cb) {
+    it('makes unpaginated requests, i.e. ignores `perPage`', function(cb) {
+      dict.loadFixedTerms([{id: 'a'}, {id: 'b'}], { perPage: 1 }, err => {
+        expect(err).to.equal(null);
+        Object.keys(dict.fixedTermsCache).length.should.equal(2);
+        count.should.equal(1);
+        cb();
+      });
+      count = 1;
+    });
+
+    it('can forward an error from `getEntries()`', function(cb) {
       dict.getEntries = (options, cb) => setTimeout(() => cb('err1'), 0);
 
       dict.loadFixedTerms([{id:''}], {}, err => {
