@@ -12,6 +12,7 @@ describe('Dictionary.js', () => {
   var dict;
   var count;
   var geCallCount;
+  var geCallOptions;
   var z  = {a: 1, b: 2};
   var z2 = {      b: 2}; // Pruned version of `z`, having only the `b`-property.
 
@@ -51,9 +52,10 @@ describe('Dictionary.js', () => {
   // would be implemented by a subclass, but we make a mock one here for testing).
   // It generates & returns items based on the IDs in `options.filter.id[]`.
   function addMockGetEntries(dict) {
-    geCallCount = 0;
+    geCallCount = geCallOptions = 0;
     dict.getEntries = (options, cb) => setTimeout(() => { // Truly-async callbk.
       geCallCount++;
+      geCallOptions = options;
       cb(null,
         { items: options.filter.id
           .map(id => !id || id == 'x' ? null :  // Makes no entry for ID 'x', ..
@@ -151,10 +153,14 @@ describe('Dictionary.js', () => {
       count = 1;
     });
 
-    it('makes unpaginated requests, i.e. ignores `perPage`', cb => {
-      dict.loadFixedTerms([{id: 'a'}, {id: 'b'}], { perPage: 1 }, err => {
+    it('makes unpaginated requests, i.e. it resets `page` and ' +
+       '`perPage`', cb => {
+      var idts    = [{ id: 'a' }, { id: 'b' }];
+      var options = { page: 5, perPage: 1 };
+      dict.loadFixedTerms(idts, options, err => {
         expect(err).to.equal(null);
-        Object.keys(dict.fixedTermsCache).length.should.equal(2);
+        geCallOptions.page   .should.equal(1);
+        geCallOptions.perPage.should.equal(idts.length);
         count.should.equal(1);
         cb();
       });
