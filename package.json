@@ -1,6 +1,6 @@
 {
   "name": "vsm-dictionary",
-  "version": "2.4.2",
+  "version": "2.5.0",
   "description": "VSM-dictionary interface specification, and parent class, having shared code for subclass implementations",
   "main": "src/Dictionary.js",
   "scripts": {

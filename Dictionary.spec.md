@@ -40,13 +40,22 @@ A `Dictionary` provides access to a (local or remote) list of
 'dictInfo', 'entry', and 'refTerm' objects, and derived 'match' objects.
 
 1. A 'dictInfo' is an object with info on one subdictionary, with properties:
-    - `id`: {String}:
-              unique identifier for a subdictionary; this is
-              typically an abbreviation (e.g. "HUGO")
-              and should never be modified in a database;
-    - `name`: {String}:
-              full name of a subdictionary;
-    - `f_aci()`: {Function} (optional):  
+    - `id`: {String}:  
+              the subdictionary's unique identifier;  
+              for a local demo-VsmDictionary, this could be anything;  
+              for a public, server-based set of dictionaries, this should be a
+              globally unique identifier, typically a
+              [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier);  
+              (e.g.: 'http://bioportal.bioontology.org/ontologies/HUGO').
+    - `abbrev`: {String} (optional):  
+              an abbreviation or acronym of the subdictionary's name,
+              meant as a human-friendly identifier;
+              it should be unique among the VsmDictionary's subdictionaries;  
+              (e.g. 'HUGO');
+    - `name`: {String} (opt.):  
+              the full name of the subdictionary;  
+              (e.g. 'Human Genome Organization Gene Symbols');
+    - `f_aci()`: {Function} (opt.):  
         + In a user interface (UI), when a user searches for terms in this
           subdictionary, the matching results can be shown in a list of
           UI-components called "**A**uto**c**omplete **i**tem"s.  
@@ -171,14 +180,8 @@ Subclasses must implement the following functions:
     - `filter`: {Object}: filter-options; properties are combined in AND-mode:
         - `id`: {Array(String)} (optional):
             a list of dictIDs; returns for all dictIDs, combined in OR-mode;
-        - `name`: {Array(String)} (opt.):
-            a list of dict-names; returns for all names, combined in OR-mode;
         + Note: when no `filter` is given (default), returns all dictInfo
           objects;
-    - `sort`: {String}: one of:
-        + 'id' (default, is same as not giving an `options.sort`):
-            returned items are sorted by their dictID `id`;
-        + 'name': sorts by `name`;
     - `page` {int}:
         because too many items could match, the results will be paginated;
         this field tells which 'page' of results is requested by this call;
