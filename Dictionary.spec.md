@@ -41,12 +41,13 @@ A `Dictionary` provides access to a (local or remote) list of
 
 1. A 'dictInfo' is an object with info on one subdictionary, with properties:
     - `id`: {String}:  
-              the subdictionary's unique identifier;  
-              for a local demo-VsmDictionary, this could be anything;  
-              for a public, server-based set of dictionaries, this should be a
-              globally unique identifier, typically a
-              [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier);  
-              (e.g.: 'http://bioportal.bioontology.org/ontologies/HUGO').
+      the subdictionary's unique identifier;  
+      + for a public, server-based collection of dictionaries, this should be a
+        globally unique identifier, typically a
+        [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier);  
+        (e.g.: 'http://bioportal.bioontology.org/ontologies/HUGO');
+      + for a local demo-VsmDictionary, it may be anything (it could
+        be just an abbreviation of the subdictionary name);  
     - `abbrev`: {String} (optional):  
               an abbreviation or acronym of the subdictionary's name,
               meant as a human-friendly identifier;
