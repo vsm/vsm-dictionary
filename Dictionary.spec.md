@@ -136,7 +136,7 @@ A `Dictionary` provides access to a (local or remote) list of
         + 'F' = it matches a 'fixedTerm' term+concept, as in 'S' (see later);
         + 'G' = it matches a 'fixedTerm' term+concept, as in 'T';
         + 'R' = it is fully equal to a 'refTerm';
-                a refTerm 'match' has empty properties `id` and `dictID`;
+                a refTerm 'match' has empty-string properties `id` and `dictID`;
         + 'N' = a generated match that represents a number, + standard-made ID;
     - `terms`: {Array(Object)} (optional):
               this may contain the entry's full terms-list `terms`;
@@ -149,7 +149,7 @@ A `Dictionary` provides access to a (local or remote) list of
         And multiple match-objects can be linked to the same ID, but will then
         have a different term-string `str`!
       + When multiple match-objects are returned as a list, they should be
-        sorted in the order: N, R, F, G, S, T.
+        sorted in the order: N, R, F, G, and then S and T.
 
 
 &nbsp;  
@@ -165,6 +165,11 @@ a vsm-autocomplete can use. - E.g.:
   
 + Note: in the functions below, any string-sorting (such as by dictID,
   conceptID, or term-string) happens case-insensitively.
++ Note: in functions below, any `options.sort` should be seen as declaring a
+  preference only.  
+  So, making sort-functionality available is optional, and may be ignored.
+  Support may depend on the capabilities of the API of the backend-service
+  that a particular VsmDictionary-subclass depends on.
 
 + Note: all functions below must return their results via a callback `cb` that
   is called in a truly asynchronous way.  
@@ -217,6 +222,7 @@ Subclasses must implement the following functions:
         + 'id': sorts by conceptID `id` only;
         + 'str': sorts entries by their first term-string `terms[0].str`, then
             by `dictID`, and then by `id`;
+        + Note: as stated above, support for `options.sort` is optional.
     - `z`: {true|Array(String)}:
         the returned entries will have a z-object that contains all, or only
         the given selection of the stored entries' z-properties, respectively;  
@@ -253,7 +259,7 @@ Subclasses must implement the following functions:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
       - `items`: {Array(String)}: a list of refTerms. This list must be sorted.
-  + Note: it is optional to implement this function in the subclass,
+  + Note: it is _optional_ to implement this function in the subclass,
     because the parent class includes a default implementation:
     one that works with a small, in-memory list of default refTerms.  
     (Note that there happens no mixing between these default refTerms and
@@ -275,9 +281,8 @@ Subclasses must implement the following functions:
     - `sort`: {Object}:
         - `dictID`: {Array(String)} (opt.):
             sorts matches whose dictID is in this list, first; then sorts as
-            usual ('S' before 'T', then case-insensitively by term-string, then
-            by own dictID); see notes below for details on sorting;  
-            this property essentially enables defining 'preferred dictionaries';
+            usual; see the extensive notes below for details on sorting;  
+        + Note: only supported in combination with `page: 1` (see notes below);
     - `z`: {true|Array(String)}:
         will include full, partial, or no z-object; as described for the
         `options.z` of `getEntries()`;
@@ -294,21 +299,79 @@ Subclasses must implement the following functions:
   + Notes:
     + Returned matches are filtered:
       only those belonging to any of the subdictionaries given in `filter.dictID`
-      (if any given), will be returned.
-    + Returned matches are sorted by the following keys, in this order:
-      + If a `sort.dictID` is given, then matches that belong to any of the
-        subdicts given in that list, are grouped and sorted before matches
-        that don't;
-        + Note: the order of dictIDs within `sort.dictID` is not important;
-          `sort.dictID` only splits matches into 2 blocks: those with a dictID
-          in the list vs. those without;
-      + then: within each of those one or two groups, matches with `type` 'S'
-        are sorted before those with 'T' (i.e. first prefix matches, then infix
-        matches);
-        + Note: while S/T-type match-sorting is the responsibility of
-          VsmDictionary-subclasses, the VsmDictionary parent class code will mix
-          N/R/F/G- type matches with these, to create the order N/R/F/G/S/T;
-          see later, under `getMatchesForString()`/`_addExtraMatchesForString()`);
+      (if given), will be returned.
+    + Returned matches can also be sorted, as follows:  
+      If a `sort.dictID` is given, then matches that belong to any of the
+      subdicts given in that list, are placed before matches that do not.  
+      + This property essentially enables defining 'preferred dictionaries'.  
+      + Note: the order of dictIDs within `sort.dictID` is _not important_;  
+        `sort.dictID` simply splits matches into 2 blocks: those with a dictID
+        in the list vs. those without.
+      + So e.g.:
+        + `options = { filter: { dictID: ['A', 'B', 'C', 'D'] } }` returns *only*
+          matches from subdicts A/B/C/D.
+        + `options = { sort: { dictID: ['A', 'B'] } }` *prioritizes* matches
+          from subdicts A/B in the returned list, while non-A/B-matches (from
+          subdicts like C/D/E/etc.) may still appear after A/B-matches, 
+        + `options = { filter: { dictID: ['A', 'B', 'C', 'D'] }, sort: { dictID: ['A', 'B'] }}`
+          returns only matches from A/B/C/D, while putting any matches that
+          belong to either A or B in front.
+      + Why this feature?:  
+        _Use case 1_: the user wants to search for only Protein names and Gene
+        names from Human, Mouse, and Rat (=2x3=6 subdictionaries), whereby
+        Protein names will usually be selected, and should thus always be shown
+        on top in an autocomplete list; but whereby the user also wants to
+        see Gene names as a fallback, in case some gene does not yet have a
+        listed, associated Protein name in its dictionary.  
+        Then `filter` will refer to the 6 subdicts, and `sort` will refer to
+        the 3 preferred Protein-name term lists.  
+        _Use case 2_: the designer of a VSM-template creates an empty field
+        in a VSM-sentence, that is expected to hold a location-like term. The
+        designer expects that the field will be filled with terms from a
+        Cell Line dictionary, but anticipates that users of the template will
+        regularly find additional useful dictionaries.  
+        Therefore, the designer does not want to limit the field to Cell Line
+        terms only, but just wants to make autocomplete rank those terms on top.
+        Therefore, Cell-Line's ID goes into `options.sort`, and there is
+        no `options.filter`.
+      + Note that the backend-service may not directly support this. In that
+        case, this functionality can be implemented by launching two parallel
+        queries: one query that that filters for the dictIDs that are in both
+        `sort` and `filter`, and one query that filters for dictIDs in `filter`
+        (if any) but not in `sort`; and then concatenating (and if needed
+        de-dup'ing) the result lists; and trimming this to length `perPage`.
+      + _Limitation_: this sorting is really only useful for an autocomplete
+        result-list, where only a limited of number of terms can be shown, and
+        where the best matches really should consistently appear on top.  
+        If the backend-service does not support this kind of sorting, then it is
+        impractical to implement this on the client-side using parallel queries,
+        when the `page` number is larger than 1.  
+        Note that autocomplete is expected to launch `page: 1`-queries only,
+        and that only some more advanced term-search and -management dialog
+        window is expected to enable a user to navigate to other `page` numbers,
+        or even to inspect whole subdictionaries.  
+        + Therefore, `sort.dictID` may only be requested (and should only be
+          followed) in combination with a `page: 1`.
+        + And so, also for consistent navigation, an 'advanced-search'
+          component that expects to show also `page`s `> 1`, should not query
+          with a `sort.dictID` option for any of its pages, including its page 1.
+    + Returned matches _may_ be sorted further, as follows.  
+      This is only a suggestion, for if the backend-service supports it,
+      or for who designs their own backend-service.  
+      (Note: all this sorting should happen on the server-side, as it is the
+      only place where it can happen reliably, in order to have no confusion
+      with paginated results).  
+      (And note that 'vsm-dictionary-local' implements this 'server-side' code
+      on the client, which is why that one package does contain sorting-code).  
+      Optional sorting, continued:
+      + Within each of the one or two `sort.dictID` groups, matches that got
+        `type` 'S' are sorted before those with 'T' (i.e. first prefix matches,
+        then infix matches);
+        + Note: any S/T-type match-sorting is the responsibility of
+          VsmDictionary-subclasses (or their backend-service),  
+          while the VsmDictionary parent class code will mix N/R/F/G- type
+          matches with these, to create the order N/R/F/G/S&T;
+          (see later, under `getMatchesForString()`);
       + then, within each S/T-group, either..:
         + alphabetically and case-insensitively by term-string;
         + then: sorted by own dictID;
@@ -320,10 +383,6 @@ Subclasses must implement the following functions:
       + ..or:
         + sorted by some measure of relevance, e.g. how often the term is used
           in general, or based on some context (would be future implementation).
-    + So:
-      + `options = {filter: dictID:['D']}` returns *only* matches in subdict 'D'.
-      + `options = {sort: dictID:['D']}` *prioritizes* matches from subdict 'D'
-          in the returned list. Non-D-matches may still appear after D-matches.
     + A maximum of `perPage` S/T-type matches is returned. But in addition,
       for a first result-page only, any parent-class-made N/R/F/G-matches
       may be added.
@@ -490,7 +549,7 @@ match-objects.
   matches may cause that `getMatchesForString()` returns more than `perPage`
   matches in total, for the first page only.  
   <br>
-  The addition of some non-S/T match-objects is elaborated below:
+  The addition/merging of some non-S/T match-objects is elaborated below:
 
 + Addition of match-objects from `fixedTermsCache`:  
   + It will consider the following `options` props:
@@ -529,7 +588,7 @@ match-objects.
       normal match will be removed.
   + Next, it puts the (remaining) normal, 'S'/'T'-type matches from the subclass,
     leaving them ordered as received from the subclass.
-  + So match-objects are ordered overall by type: N-R-F-G-S-T.
+  + So match-objects are ordered overall by type: N-R-F-G-S&T.
 
 
 &nbsp;  
