@@ -297,6 +297,7 @@ Subclasses must implement the following functions:
             i.e. like:
       `{id, dictID, str, style, descr, type, terms[{str, style, descr}, ...], z}`.
   + Notes:
+    + If `str` is empty, then it returns no matches.
     + Returned matches are filtered:
       only those belonging to any of the subdictionaries given in `filter.dictID`
       (if given), will be returned.
