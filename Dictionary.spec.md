@@ -283,7 +283,7 @@ Subclasses must implement the following functions:
             sorts matches whose dictID is in this list, first; then sorts as
             usual; see the extensive notes below for details on sorting;  
         + Note: only supported in combination with `page: 1` (see notes below);
-    - `z`: {true|Array(String)}:
+    - `z`: {true|Array(String)}: (default: `true`):
         will include full, partial, or no z-object; as described for the
         `options.z` of `getEntries()`;
     - `page` {int}:

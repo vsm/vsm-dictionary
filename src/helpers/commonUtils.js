@@ -67,7 +67,7 @@ function prepEntry(entry) {
  *   processes each each `entries`-item's `z`-property, and:
  *   - keeps only the subproperties specified by the Strings in `zPropStrs`;
  *   - if this makes `z` an empty Object, then removes the entry's `z` entirely.
- * - If `zPropStrs` is true, returns `entries` unchanged.
+ * - If `zPropStrs` is true or undefined, returns `entries` unchanged.
  */
 function zPropPrune(entries, zPropStrs = true) {
   return zPropStrs === true ? entries :

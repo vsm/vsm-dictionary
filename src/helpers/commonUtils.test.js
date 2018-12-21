@@ -57,6 +57,11 @@ describe('helpers/commonUtils.js', () => {
       zPropPrune([ {z: {a: 1, b: 2, c: 3}, X: 9} ], true).should.deep.equal(
         [ {z: {a: 1, b: 2, c: 3}, X: 9} ] );
     });
+    it('leaves an Object\'s z-prop. unchanged if arg. 2 is `undefined`', () => {
+      var options = { };  // => `options.z` will be `undefined`.
+      zPropPrune([ {z: {a: 1, b: 2, c: 3}, X: 9} ], options.z).should.deep.equal(
+        [ {z: {a: 1, b: 2, c: 3}, X: 9} ] );
+    });
     it('removes the z-property if arg. 2 is `[]`', () => {
       zPropPrune([ {z: {a: 1, b: 2, c: 3}, X: 9} ], []).should.deep.equal(
         [ {X: 9} ] );
