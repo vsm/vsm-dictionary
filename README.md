@@ -96,10 +96,10 @@ and [`VsmDictionaryRemoteDemo`](https://github.com/vsmjs/vsm-dictionary-remote-d
 const VsmDictionary = require('vsm-dictionary');
 
 // Make subclass and export as Node.js module.
-module.exports = class VsmDictionaryNewwwww extends VsmDictionary {
+module.exports = class VsmDictionaryNewww extends VsmDictionary {
 
   constructor(options) {
-    // We must make call to parent constructor first.
+    // Must call the parent constructor first.
     super(options);
 
     // ...
@@ -128,10 +128,10 @@ module.exports = class VsmDictionaryNewwwww extends VsmDictionary {
 
 <div style="font-size: smaller;">
 
-(If the above code is placed in a file named 'VsmDictionaryNewwwww.js',
-it can already be usde in another file 'test.js':
+(If the above code is placed in a file named 'VsmDictionaryNewww.js',
+it can already be used in another file 'test.js':
 ```javascript
-var Dict = require('./VsmDictionaryNewwwww.js');
+var Dict = require('./VsmDictionaryNewww.js');
 var dict = new Dict();
 console.dir(dict);
 dict.getMatchesForString('42', {}, (err, res) => console.dir(res));
