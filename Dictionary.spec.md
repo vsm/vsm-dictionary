@@ -56,24 +56,6 @@ A `Dictionary` provides access to a (local or remote) list of
     - `name`: {String} (opt.):  
               the full name of the subdictionary;  
               (e.g. 'Human Genome Organization Gene Symbols');
-    - `f_aci()`: {Function} (opt.):  
-        + In a user interface (UI), when a user searches for terms in this
-          subdictionary, the matching results can be shown in a list of
-          UI-components called "**A**uto**c**omplete **i**tem"s.  
-          `f_aci()` can be used to define customized content
-          for such a list item, specific to a subdictionary.  
-        + E.g. for a Human Gene names dictionary: it could also show a list of
-          gene-name synonyms.  
-          Or for a Taxonomy dictionary: it could show an image of the organism
-          next to its species name.
-        + This function is described in `vsm-autocomplete`'s
-          [specification](https://github.com/vsmjs/vsm-autocomplete).
-          (This requires familiarity with the 'match' data type, described below).
-    + Notes:
-      + Additional `f_*()` functions may be defined in subclasses.
-      + Functions can not be stored in a JSON data-object, so Function-typed
-        properties `f_*()` may be passed as String, which will be `eval()`'ed.  
-        This must be a string like: `"function(x) { return x + 1; }"`.
 
 2. An 'entry' represents a *concept* and is an object with properties:
     - `id`: {String}:
@@ -103,15 +85,18 @@ A `Dictionary` provides access to a (local or remote) list of
               us to give a custom description of a concept, from a particular
               term's perspective;
     - `z`: {Object} (optional):
-            any extra information, free in form, related to the entry; this
-            could include subdictionary-specific data for `f_aci()` processing;
+            any extra information, free in form, related to the entry;  
+            this extra data can be used by e.g. any third-party
+            customization function that is given to 
+            [vsm-autocomplete](https://github.com/vsmjs/vsm-autocomplete) or
+            [vsm-box](https://github.com/vsmjs/vsm-box);  
             as `z` is an Object, the extra info must be set on properties of `z`.
 
 3. A 'refTerm' ('reference term') is a pure string that does not represent a
   concept on its own, but that is commonly used to refer to another concept,
   like "it" or "that".
   A `Dictionary` deals with refTerms as well, in order to support a vsm-box's
-  autocomplete as a single accesspoint to string- and concept-type match-objs.
+  autocomplete as a single access point to string- and concept-type match-objs.
 
 4. A 'match' is an object returned by search-string querying functionality.
   It represents one specific term linked to one specific entry. It provides the
@@ -205,7 +190,7 @@ Subclasses must implement the following functions:
         implementations may still add meta-information in extra fields,
         e.g. a `hasMore` field.
   + Note: the function `getDictInfos()` is useful for vsm-autocomplete, to
-    access the `dictInfo.f_aci()`s.
+    retrieve each match's subdictionary's abbreviation or full name.
 
 2. `getEntries(options, cb)`:
   Gets the "entry"-objects specified in `options`:
@@ -223,13 +208,14 @@ Subclasses must implement the following functions:
         + 'str': sorts entries by their first term-string `terms[0].str`, then
             by `dictID`, and then by `id`;
         + Note: as stated above, support for `options.sort` is optional.
-    - `z`: {true|Array(String)}:
+    - `z`: {true|Array(String)}: (default: `true`):  
         the returned entries will have a z-object that contains all, or only
         the given selection of the stored entries' z-properties, respectively;  
+        to get all z-properties: use `true` or omit it; or to get none: use `[]`;  
         a subclass may define its own default selection for when no `options.z`
         is given;  
-        if the result is an empty z-object, then the returned entry's z-property
-        is dropped;
+        if the result would be an empty z-object, then the returned entry's
+        z-property is dropped;
     - `page` {int}:
         which page of the paginated result is requested (starting from 1);
     - `perPage` {int}:
@@ -240,8 +226,8 @@ Subclasses must implement the following functions:
       - `items`: {Array(Object)}: a list of 'entry'-objects, as described above,
             i.e. like: `{id, dictID, descr, terms[{str, style, descr}, ...], z}`.
   + Note: this function is necessary for term/concept-search functionality that
-    would be more powerful/configurable than just autocomplete, and also for
-    'fixedTerms'-preloading (see later).
+    is more powerful than just using autocomplete or string-based search. This
+    includes ID-based search, used for 'fixedTerms'-preloading (see later).
 
 3. `getRefTerms(options, cb)`:
   Returns all "refTerm" strings, sorted alphabetically.
@@ -283,7 +269,7 @@ Subclasses must implement the following functions:
             sorts matches whose dictID is in this list, first; then sorts as
             usual; see the extensive notes below for details on sorting;  
         + Note: only supported in combination with `page: 1` (see notes below);
-    - `z`: {true|Array(String)}: (default: `true`):
+    - `z`: {true|Array(String)}: (default: `true`):  
         will include full, partial, or no z-object; as described for the
         `options.z` of `getEntries()`;
     - `page` {int}:
@@ -422,7 +408,7 @@ match-objects.
   terms.  
   &nbsp;  
   A VSM-template stores fixedTerms efficiently: just by their conceptID +
-  (usually also) term.
+  (usually also) term-string.
   But VSM-autocomplete needs full match-objects. Therefore, and because of query
   efficiency, the `Dictionary` parent class provides the function
   `loadFixedTerms()`, to pre-load (from the subclass's storage resource) and
@@ -459,9 +445,10 @@ match-objects.
     + Note: the cache stores only one version of a fixedTerm, regardless of how
       it may have been z-pruned.  It stores fixedTerms by 'id+str' cache-key,
       (not by id+str+zOptions).  
-      This is because we assume that entries from a particular subdictionary
-      will always be z-pruned in the same way. So there will be no change in
-      how a particular entry is z-pruned/-requested.
+      This is because we assume that requested fixedTerms/entries will always
+      be z-pruned/requested in the same way. (This may be changed though in a
+      future implementation, perhaps by always preloading fixedTerms with their
+      full z-object).
     - `cb`: {Function}: callback with argument:
       - `err`: {null|String|Object}:  
         an error will be generated if some maximum number of requested items was
@@ -476,7 +463,7 @@ match-objects.
 + Numbers can be 'concepts' too in a VSM-sentence. But no dictionary can
   store all possible or necessary numbers beforehand.  
   So to support VSM-autocomplete, a VsmDictionary will also detect strings that
-  represent a numeric value. It will generate a unique, value-base ID for it,
+  represent a numeric value. It will generate a unique, value-based ID for it,
   on-the-fly, and serve a match-object for it.  
   This is a common functionality for any `Dictionary` implementation, so this
   happens in the parent class.
@@ -500,7 +487,7 @@ match-objects.
       `Dictionary.numberMatchConfig` {false|Object}:  
       + If `false`, then the addition of number-string match-objects is
         deactivated.
-        + So, `new DictionaryX({numberMatchConfig: false})` would create a
+        + So, `new DictionaryX({ numberMatchConfig: false })` would create a
           subclass `DictionaryX` that does not generate number-string matches.
       + If an Object, then it has properties:
         - `dictID`: {String}:
@@ -572,12 +559,12 @@ match-objects.
 
 + Merging and sorting all collected match-objects:
   + It sorts a possible 'N'-type (number-string) match on top.
-    + If a number-string match is a duplicate of a normal match returned by the
-      subclass (so, if that number was already stored as a concept in the
+    + If a number-string match is a duplicate of a normal 'S'/'T'-match returned
+      by the subclass (so, if that number was already stored as a concept in the
       dictionary, i.e. with same conceptID), then the normal match is used
       instead of the generated one.
-      Because it may be more informative than the generated one (e.g. '12' may
-      have extra terms like 'twelve' or 'dozen').
+      This is because it may be more informative than the generated one (e.g.
+      '12' may have extra terms like 'twelve' or 'dozen').
       That normal match is then moved to the top of the matches-list, and
       gets its `type` set to 'N'.
   + Next, it puts a possible 'R'-type (refTerm) match.
@@ -674,7 +661,7 @@ Subclasses could implement the following functions, if the underlying storage
 &nbsp;  
 SUBCLASS 'UPDATE'-TYPE FUNCTIONALITY
 ------------------------------------
-Subclasses could implement these functions, if the underlying storage allows:
+Subclasses could implement these functions, if the underlying storage allows it:
 
 1. `updateDictInfos(dictInfos, cb)`:
   Updates a list of subdictionary info-objects in the storage, by copying each
@@ -717,8 +704,9 @@ Subclasses could implement these functions, if the underlying storage allows:
         - `termsDel` {Array(String)}:
               deletes terms in `terms`, based on these given term-strings;
               no error if some term-string does not occur;
-              but errors when trying to delete an entry's last term-object (this
-              then also cancels all of the entryLike's other requested changes);
+              but errors when trying to delete an entry's last term-object,
+              without adding any new one/s (this then also cancels all of
+              the entryLike's other requested changes);
         - `zDel` {true|Array(String)}:
               deletes the given properties from the entry's `z`-object; if
               `true` then deletes `z` entirely;
@@ -742,7 +730,7 @@ Subclasses could implement these functions, if the underlying storage allows:
 &nbsp;  
 SUBCLASS 'DELETE'-TYPE FUNCTIONALITY
 ------------------------------------
-Subclasses could implement these functions, if the underlying storage allows:
+Subclasses could implement these functions, if the underlying storage allows it:
 
 1. `deleteDictInfos(dictIDs, cb)`:
     - `dictIDs`: {Array(String)}: a list of subdictionary-IDs;
