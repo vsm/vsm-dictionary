@@ -26,11 +26,11 @@
   },
   "homepage": "https://github.com/vsmjs/vsm-dictionary#readme",
   "devDependencies": {
-    "chai": "^4.1.2",
-    "eslint": "^5.4.0",
+    "chai": "^4.2.0",
+    "eslint": "^5.11.1",
     "mocha": "^5.2.0"
   },
   "dependencies": {
-    "to-exponential": "^1.0.1"
+    "to-exponential": "^1.0.2"
   }
 }
