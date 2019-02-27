@@ -58,33 +58,41 @@ A `Dictionary` provides access to a (local or remote) list of
               (e.g. 'Human Genome Organization Gene Symbols');
 
 2. An 'entry' represents a *concept* and is an object with properties:
-    - `id`: {String}:
+    - `id`: {String}:  
               the concept's unique (among all dictionaries!) identifier; for a
               local demo-dictionary this could be anything; for a server-based
               dictionary this would typically be a
               [URI](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
               (as in Linked Data); (we also refer to this ID as a 'conceptID',
               since an entry represents a single concept);
-    - `dictID`: {String}:
+    - `dictID`: {String}:  
               a subdictionary-ID, which refers to a `dictInfo`'s `id`; this
               gives access to the entry's `dictInfo`-specific functionality;
-    - `descr`: {String} (optional):
+    - `descr`: {String} (optional):  
               an explanation/description/definition of the concept;
-    - `terms`: {Array(Object)}:
-              a non-empty list of the concept's terms, i.e. its synonyms's
-              string-representations, each represented by an Object with props:
-        - `str`: {String}:
+    - `terms`: {Array(Object)}:  
+              a non-empty list of the concept's synonymous terms, i.e. a list of
+              all of its string-representations, each represented by an Object
+              with props:
+        - `str`: {String}:  
               the term as a pure string, making it findable via string-search;
-        - `style`: {String|Object} (optional):
+        - `style`: {String|Object} (optional):  
               style-information; this could be a html-representation of `str`,
               e.g. with sub/superscript, or an object, or a code-string with
               styling-instructions as described in
               [string-style-html](https://github.com/vsmjs/string-style-html);
-        - `descr`: {String} (optional):
+        - `descr`: {String} (optional):  
               if present, this `descr` overrides the entry's `descr`, enabling
               us to give a custom description of a concept, from a particular
               term's perspective;
-    - `z`: {Object} (optional):
+        + Note: in some domains of expertise, it is defined that a concept has
+          one unique, identifying 'main term', in addition to zero or more
+          (non-preferred) 'synonyms'.  
+          In a VSM-dictionary, however, the list of 'synonymous terms' `terms`
+          would then be the list of both that main term and those synonyms,
+          whereby the main term would be identified by being the first element
+          of `terms`.
+    - `z`: {Object} (optional):  
             any extra information, free in form, related to the entry;  
             this extra data can be used by e.g. any third-party
             customization function that is given to 
@@ -102,19 +110,19 @@ A `Dictionary` provides access to a (local or remote) list of
   It represents one specific term linked to one specific entry. It provides the
   necessary data to build an autocomplete item, which links a term+concept into
   a VSM-term. It has properties:
-    - `id`: {String}:
+    - `id`: {String}:  
               concept-ID, i.e. unique identifier of the matched entry, e.g. URI;
-    - `dictID`: {String}:
+    - `dictID`: {String}:  
               subdictionary-ID, giving access to one dictInfo's functionality;
-    - `str`: {String}:
+    - `str`: {String}:  
               pure string-representation of a term that matches the
               string-query;
-    - `style`: {String|Object} (optional):
+    - `style`: {String|Object} (optional):  
               style/d string (as stored in the entry's particular term-object);
-    - `descr`: {String} (optional):
+    - `descr`: {String} (opt.):  
               explanation of the entry, or the overriding explanation
               for this term;
-    - `type`: {1-char-String}:
+    - `type`: {1-char-String}:  
               what type of match it is:
         + 'S' = search-string matches the start of the term, or is fully equal;
         + 'T' = search-string appears somewhere in the term, but not its start;
@@ -123,9 +131,9 @@ A `Dictionary` provides access to a (local or remote) list of
         + 'R' = it is fully equal to a 'refTerm';
                 a refTerm 'match' has empty-string properties `id` and `dictID`;
         + 'N' = a generated match that represents a number, + standard-made ID;
-    - `terms`: {Array(Object)} (optional):
+    - `terms`: {Array(Object)} (opt.):  
               this may contain the entry's full terms-list `terms`;
-    - `z`: {Object} (optional):
+    - `z`: {Object} (opt.):  
               is the entry's `z` info,  filtered according to the query's
               `options.z` (see `getMatchesForString()`).
     + Note:
