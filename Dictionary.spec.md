@@ -160,10 +160,13 @@ a vsm-autocomplete can use. - E.g.:
   conceptID, or term-string) happens case-insensitively.
 + Note: in functions below, any `options.sort` should be seen as declaring a
   preference only.  
-  So, making sort-functionality available is optional, and may be ignored.
-  Support may depend on the capabilities of the API of the backend-service
-  that a particular VsmDictionary-subclass depends on.
-
+  So, implementation of sort-functionality is optional, and may be ignored.
+  It would depend on the capability of the API of the backend-service that
+  the particular VsmDictionary-subclass depends on. (If the server-side does
+  not provide sorting, it would likely be too complicated to implement it on the
+  client side).  
+  Sorting is nice to have though, as it makes results being returned in a
+  consistent way, which is useful for debugging and for the end-user experience.
 + Note: all functions below must return their results via a callback `cb` that
   is called in a truly asynchronous way.  
   This means: in case results would not be fetched from a database but directly
@@ -201,7 +204,7 @@ Subclasses must implement the following functions:
     retrieve each match's subdictionary's abbreviation or full name.
 
 2. `getEntries(options, cb)`:
-  Gets the "entry"-objects specified in `options`:
+  Gets the "entry"-objects specified by `options`:
   - `options`: {Object}: supports these all-optional properties:
     - `filter`: {Object}: filter-options; properties are combined in AND-mode:
         - `id`: {Array(String)} (opt.):
@@ -228,7 +231,35 @@ Subclasses must implement the following functions:
         which page of the paginated result is requested (starting from 1);
     - `perPage` {int}:
         how many items should be returned by one call.
-  - `cb`: {Function}: callback with arguments:
+    - `getAllResults` {Boolean}: (`true` or `false`/absent; default: absent):  
+        This should be taken into account only during queries with a `filter.id`,
+        and _only_ by vsm-dictionary subclasses that depend on a server-API that
+        can return multiple results per unique entry-ID.  
+        _(This is e.g. the case with 'vsm-dictionary-bioportal', which serves_
+        _terms from [BioPortal](https://bioportal.bioontology.org/),_
+        _which combines many dictionaries/ontologies,_
+        _of which some reuse/import some of the other ontologies' concepts)._  
+        If `true`, then such a vsm-dictionary should ignore `perPage` and `page`,
+        and query its datastore in such a way that all entries that match
+        `filter.id`s are returned.  
+        + _Why?_ : This feature is needed when `loadFixedTerms()` tries to
+          receive one entry for each fixedTerm `id`. &ndash;
+          Now, as it may need entries for more IDs than the vsm-dictionary's
+          default `perPage` (and it sends only a single request), it explicitly
+          requests `fixedTerms.length` results. &ndash;
+          But if IDs can appear multiple times in the server response, then the
+          number of results could exceed that `perPage`, which would cause
+          pagination after all, and could make page 1 exclude some of the
+          requested IDs.
+        + So a vsm-dictionary subclass that has this duplicate ID problem should,
+          during queries with `filter.id` and `getAllResults==true`, ignore any
+          given `perPage`/`page`, and run the query to its backend's API in such
+          a way that all possible results are returned. &ndash;
+          Also then, it is recommended (if possible) to sort the results in such
+          a way that, of all the duplicate entries for `id`, it returns the
+          entry from the original dictionary earliest in the list;
+          as this is the entry that `loadFixedTerms()` will use.
+- `cb`: {Function}: callback with arguments:
     - `err`: {null|String|Object}
     - `res`: {Object}: with properties:
       - `items`: {Array(Object)}: a list of 'entry'-objects, as described above,

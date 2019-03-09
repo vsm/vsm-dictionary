@@ -154,13 +154,14 @@ describe('Dictionary.js', () => {
     });
 
     it('makes unpaginated requests, i.e. it resets `page` and ' +
-       '`perPage`', cb => {
+       '`perPage`, and set `getAllResults` to `true`', cb => {
       var idts    = [{ id: 'a' }, { id: 'b' }];
       var options = { page: 5, perPage: 1 };
       dict.loadFixedTerms(idts, options, err => {
         expect(err).to.equal(null);
-        geCallOptions.page   .should.equal(1);
-        geCallOptions.perPage.should.equal(idts.length);
+        geCallOptions.page         .should.equal(1);
+        geCallOptions.perPage      .should.equal(idts.length);
+        geCallOptions.getAllResults.should.equal(true);
         count.should.equal(1);
         cb();
       });

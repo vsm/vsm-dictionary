@@ -64,8 +64,9 @@ module.exports = class Dictionary {
     var opt = deepClone(options);
     if (!opt.filter)  opt.filter = {};
     opt.filter.id = idts.map(x => x.id); // Query `getEntries()` for idts's IDs.
-    opt.page      = 1;
-    opt.perPage   = idts.length;  // Ensure the response isn't paginated.
+    opt.page          = 1;
+    opt.perPage       = idts.length;  // } Ensure the response is not paginated.
+    opt.getAllResults = true;         // }
 
     this.getEntries(opt, (err, res) => {
       if (err)  return cb(err);
