@@ -173,6 +173,23 @@ a vsm-autocomplete can use. - E.g.:
   from a memory cache (e.g. in vsm-dictionary-local), they must be returned on
   the next event-loop (via `setTimeout(() => cb(err, res), 0);`).
   This leads to reliable and consistent, guaranteed async behavior.
++ Note: for the functions below, that support filtering by dictID (via
+  `filter.id/dictID`), and that query data from a remote DB-server's API,
+  it is advised to check if the given dictIDs are relevant for that DB.  
+  Because a vsm-dictionary subclass may be combined with other
+  vsm-dictionaries in a `vsm-dictionary-combiner`, which creates a virtual
+  vsm-dictionary that makes all subdictionaries accessible through a single
+  vsm-dictionary interface. Then, when the combiner receives a (dictID-filtered)
+  request, it is sent to each of the combined vsm-dictionaries, so each may
+  receive requests that are not relevant for its particular dataset;
+  i.e. when the dictIDs target another one of the combined vsm-dictionaries.  
+  By checking if any of the filtered-for dictIDs are relevant, a vsm-dictionary
+  can avoid sending requests to its DB that will not return anything anyway.
+  + For example:
+    [`vsm-dictionary-bioportal`](https://github.com/vsmjs/vsm-dictionary-bioportal)
+    checks if there is a dictID-filter, and if so, only launches queries to the
+    BioPortal server if that filter includes some dictID-URI that matches a
+    pattern BioPortal is responsible for.
 
 Subclasses must implement the following functions:
 
