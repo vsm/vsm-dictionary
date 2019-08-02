@@ -1,6 +1,6 @@
 {
   "name": "vsm-dictionary",
-  "version": "2.6.2",
+  "version": "2.6.4",
   "description": "VSM-dictionary interface specification, and parent class, having shared code for subclass implementations",
   "main": "src/Dictionary.js",
   "scripts": {
@@ -27,7 +27,7 @@
   "homepage": "https://github.com/vsmjs/vsm-dictionary#readme",
   "devDependencies": {
     "chai": "^4.2.0",
-    "eslint": "^5.11.1",
+    "eslint": "^5.16.0",
     "mocha": "^5.2.0"
   },
   "dependencies": {
