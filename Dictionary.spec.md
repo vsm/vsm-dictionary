@@ -126,6 +126,7 @@ A `Dictionary` provides access to a (local or remote) list of
               what type of match it is:
         + 'S' = search-string matches the start of the term, or is fully equal;
         + 'T' = search-string appears somewhere in the term, but not its start;
+          or it does not appear in the term, which matched for some other reason;
         + 'F' = it matches a 'fixedTerm' term+concept, as in 'S' (see later);
         + 'G' = it matches a 'fixedTerm' term+concept, as in 'T';
         + 'R' = it is fully equal to a 'refTerm';
@@ -409,7 +410,7 @@ Subclasses must implement the following functions:
       Optional sorting, continued:
       + Within each of the one or two `sort.dictID` groups, matches that got
         `type` 'S' are sorted before those with 'T' (i.e. first prefix matches,
-        then infix matches);
+        then infix/etc matches);
         + Note: any S/T-type match-sorting is the responsibility of
           VsmDictionary-subclasses (or their backend-service),  
           while the VsmDictionary parent class code will mix N/R/F/G- type
