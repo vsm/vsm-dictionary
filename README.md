@@ -155,3 +155,9 @@ Run `npm run testw`, which automatically reruns tests on any file change.
 See [`vsm-dictionary-local`](https://github.com/vsmjs/vsm-dictionary-local)
 and [`vsm-dictionary-remote-demo`](https://github.com/vsmjs/vsm-dictionary-remote-demo)
 for interactive demos of at least the string-search functionality.
+
+<br>
+
+## License
+
+This project is licensed under the AGPL license - see [LICENSE.md](LICENSE.md).
