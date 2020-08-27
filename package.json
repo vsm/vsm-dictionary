@@ -17,14 +17,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/vsmjs/vsm-dictionary"
+    "url": "git+https://github.com/vsm/vsm-dictionary"
   },
   "author": "Steven Vercruysse (http://stcruy.com)",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/vsmjs/vsm-dictionary/issues"
+    "url": "https://github.com/vsm/vsm-dictionary/issues"
   },
-  "homepage": "https://github.com/vsmjs/vsm-dictionary#readme",
+  "homepage": "https://github.com/vsm/vsm-dictionary#readme",
   "devDependencies": {
     "chai": "^4.2.0",
     "eslint": "^5.16.0",

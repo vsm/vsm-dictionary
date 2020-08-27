@@ -13,7 +13,7 @@ that make them accessible through their own API.
 
 `vsm-dictionary` provides a standardized interface for communicating with
 dictionary webservers, in order to support VSM-sentence-building tools.
-(Tools such as [`vsm-autocomplete`](https://github.com/vsmjs/vsm-autocomplete),
+(Tools such as [`vsm-autocomplete`](https://github.com/vsm/vsm-autocomplete),
 or more advanced components for searching, storing, and managing terms).
 
 `vsm-dictionary` is also designed to handle multiple 'sub-dictionaries',
@@ -35,7 +35,7 @@ The real interface with a dictionary service is thus
 *implemented by subclasses of `VsmDictionary`*.
 
 Currently there are at least two such implementations available:
-- [`vsm-dictionary-local`](https://github.com/vsmjs/vsm-dictionary-local):  
+- [`vsm-dictionary-local`](https://github.com/vsm/vsm-dictionary-local):  
   a full implementation of a local (in-memory, serverless) VsmDictionary.
   - This module can be used as a fully functional placeholder that does not
     depend on a third-party term-server, while developing new tools
@@ -44,7 +44,7 @@ Currently there are at least two such implementations available:
     standalone demos of VSM-sentence building tools.
   - The many automated tests in VsmDictionaryLocal can give inspiration
     for testing future, webserver-linked subclasses.
-- [`vsm-dictionary-remote-demo`](https://github.com/vsmjs/vsm-dictionary-remote-demo):  
+- [`vsm-dictionary-remote-demo`](https://github.com/vsm/vsm-dictionary-remote-demo):  
   a bare-minimum demo-implementation of a VsmDictionary that connects to a
   hypothetical server API.
   - This module only serves as inspiration for developing real interfaces
@@ -86,8 +86,8 @@ npm install vsm-dictionary
 
 ### Template for a subclass, as a Node.js module:
 
-(See also [`VsmDictionaryLocal`](https://github.com/vsmjs/vsm-dictionary-local)
-and [`VsmDictionaryRemoteDemo`](https://github.com/vsmjs/vsm-dictionary-remote-demo)).
+(See also [`VsmDictionaryLocal`](https://github.com/vsm/vsm-dictionary-local)
+and [`VsmDictionaryRemoteDemo`](https://github.com/vsm/vsm-dictionary-remote-demo)).
 
 <br>
 
@@ -152,8 +152,8 @@ Run `npm run testw`, which automatically reruns tests on any file change.
 
 ## Demo
 
-See [`vsm-dictionary-local`](https://github.com/vsmjs/vsm-dictionary-local)
-and [`vsm-dictionary-remote-demo`](https://github.com/vsmjs/vsm-dictionary-remote-demo)
+See [`vsm-dictionary-local`](https://github.com/vsm/vsm-dictionary-local)
+and [`vsm-dictionary-remote-demo`](https://github.com/vsm/vsm-dictionary-remote-demo)
 for interactive demos of at least the string-search functionality.
 
 <br>

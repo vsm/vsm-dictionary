@@ -80,7 +80,7 @@ A `Dictionary` provides access to a (local or remote) list of
               style-information; this could be a html-representation of `str`,
               e.g. with sub/superscript, or an object, or a code-string with
               styling-instructions as described in
-              [string-style-html](https://github.com/vsmjs/string-style-html);
+              [string-style-html](https://github.com/vsm/string-style-html);
         - `descr`: {String} (optional):  
               if present, this `descr` overrides the entry's `descr`, enabling
               us to give a custom description of a concept, from a particular
@@ -96,8 +96,8 @@ A `Dictionary` provides access to a (local or remote) list of
             any extra information, free in form, related to the entry;  
             this extra data can be used by e.g. any third-party
             customization function that is given to 
-            [vsm-autocomplete](https://github.com/vsmjs/vsm-autocomplete) or
-            [vsm-box](https://github.com/vsmjs/vsm-box);  
+            [vsm-autocomplete](https://github.com/vsm/vsm-autocomplete) or
+            [vsm-box](https://github.com/vsm/vsm-box);  
             as `z` is an Object, the extra info must be set on properties of `z`.
 
 3. A 'refTerm' ('reference term') is a pure string that does not represent a
@@ -187,7 +187,7 @@ a vsm-autocomplete can use. - E.g.:
   By checking if any of the filtered-for dictIDs are relevant, a vsm-dictionary
   can avoid sending requests to its DB that will not return anything anyway.
   + For example:
-    [`vsm-dictionary-bioportal`](https://github.com/vsmjs/vsm-dictionary-bioportal)
+    [`vsm-dictionary-bioportal`](https://github.com/UniBioDicts/vsm-dictionary-bioportal)
     checks if there is a dictID-filter, and if so, only launches queries to the
     BioPortal server if that filter includes some dictID-URI that matches a
     pattern BioPortal is responsible for.
