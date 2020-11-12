@@ -73,7 +73,7 @@ A `Dictionary` provides access to a (local or remote) list of
     - `terms`: {Array(Object)}:  
               a non-empty list of the concept's synonymous terms, i.e. a list of
               all of its string-representations, each represented by an Object
-              with props:
+              with properties:
         - `str`: {String}:  
               the term as a pure string, making it findable via string-search;
         - `style`: {String|Object} (optional):  
@@ -597,7 +597,7 @@ match-objects.
   The addition/merging of some non-S/T match-objects is elaborated below:
 
 + Addition of match-objects from `fixedTermsCache`:  
-  + It will consider the following `options` props:
+  + It will consider the following `options` properties:
     - `options.z`: as in `getEntryMatchesForString()`;
     - `options.idts`: {Array(Object)}:  
         a selection of fixedTerms, represented by a conceptID + optional term,
