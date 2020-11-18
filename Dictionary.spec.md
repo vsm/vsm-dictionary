@@ -73,7 +73,7 @@ A `Dictionary` provides access to a (local or remote) list of
     - `terms`: {Array(Object)}:  
               a non-empty list of the concept's synonymous terms, i.e. a list of
               all of its string-representations, each represented by an Object
-              with props:
+              with properties:
         - `str`: {String}:  
               the term as a pure string, making it findable via string-search;
         - `style`: {String|Object} (optional):  
@@ -212,7 +212,11 @@ Subclasses must implement the following functions:
         notification); if not given it will be DictionaryX's own default value.
   - `cb`: {Function}: is a callback function with arguments:
     - `err`: {null|String|Object}: null if no error, else the error/message;  
-      + Note: no error occurs if no dictInfo was found for some `id` in `filter`;
+      + Note: no error should be returned if for some `id` in `filter`,
+        no associated dictInfo could be found; this is even so if a DB-server's
+        API itself would return an error for absent dictIDs.  
+        See the earlier note on dictID filtering and on combining
+        vsm-dictionaries for the rationale behind this.
     - `res`: {Object}: a result-object, with properties:
       - `items`: {Array(Object)}: has a 'dictInfo' object for each subdictionary;
       + Note: we wrap the result array into an object, so that future
@@ -597,7 +601,7 @@ match-objects.
   The addition/merging of some non-S/T match-objects is elaborated below:
 
 + Addition of match-objects from `fixedTermsCache`:  
-  + It will consider the following `options` props:
+  + It will consider the following `options` properties:
     - `options.z`: as in `getEntryMatchesForString()`;
     - `options.idts`: {Array(Object)}:  
         a selection of fixedTerms, represented by a conceptID + optional term,
