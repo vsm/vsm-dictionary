@@ -212,7 +212,11 @@ Subclasses must implement the following functions:
         notification); if not given it will be DictionaryX's own default value.
   - `cb`: {Function}: is a callback function with arguments:
     - `err`: {null|String|Object}: null if no error, else the error/message;  
-      + Note: no error occurs if no dictInfo was found for some `id` in `filter`;
+      + Note: no error should be returned if for some `id` in `filter`,
+        no associated dictInfo could be found; this is even so if a DB-server's
+        API itself would return an error for absent dictIDs.  
+        See the earlier note on dictID filtering and on combining
+        vsm-dictionaries for the rationale behind this.
     - `res`: {Object}: a result-object, with properties:
       - `items`: {Array(Object)}: has a 'dictInfo' object for each subdictionary;
       + Note: we wrap the result array into an object, so that future
